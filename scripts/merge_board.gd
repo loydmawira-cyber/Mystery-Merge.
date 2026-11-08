@@ -9,6 +9,7 @@ var gem_label: Label
 var item_count_label: Label
 var inventory_count_label: Label
 var feedback_label: Label
+var task_label: Label
 var board_grid: GridContainer
 var inventory_grid: GridContainer
 var selected_source: Dictionary = {}
@@ -19,6 +20,9 @@ func _ready() -> void:
 	GameState.board_changed.connect(_refresh_board)
 	_refresh_economy()
 	_refresh_board()
+	_refresh_task()
+	GameState.progress_changed.connect(_refresh_task)
+	GameState.task_completed.connect(_on_task_completed)
 func _build_ui() -> void:
 	var background := ColorRect.new()
 	background.color = UI.NAVY
@@ -58,6 +62,9 @@ func _build_ui() -> void:
 	currency_row.add_child(coin_label)
 	gem_label = _label("◆ 38", 12, Color("d7a5ff"))
 	currency_row.add_child(gem_label)
+	task_label = _label(GameState.get_task_progress_text(), 12, UI.GOLD)
+	task_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(task_label)
 	feedback_label = _label("Drag matching clues together to restore them.", 13, UI.PAPER)
 	feedback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	feedback_label.custom_minimum_size.y = 24
@@ -256,3 +263,15 @@ func _commas(value: int) -> String:
 		output = "," + digits.substr(digits.length() - 3) + output
 		digits = digits.substr(0, digits.length() - 3)
 	return digits + output
+
+func _refresh_task() -> void:
+	if is_instance_valid(task_label):
+		task_label.text = GameState.get_task_progress_text()
+
+func _on_task_completed(task_id: String, story_text: String) -> void:
+	_refresh_task()
+	var dialog := AcceptDialog.new()
+	dialog.title = "Evidence Objective Complete"
+	dialog.dialog_text = "%s\n\n%s" % [task_id.replace("_", " ").capitalize(), story_text]
+	add_child(dialog)
+	dialog.popup_centered()
