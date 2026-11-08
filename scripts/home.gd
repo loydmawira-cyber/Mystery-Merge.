@@ -77,10 +77,9 @@ func _button(label: String, background: Color, foreground: Color) -> Button:
 	return button
 
 func _daily_reward() -> void:
-	GameState.energy = mini(GameState.max_energy, GameState.energy + 10)
-	GameState.add_coins(100)
+	var result := GameState.claim_daily_reward()
 	var dialog := AcceptDialog.new()
 	dialog.title = "Daily Detective Gift"
-	dialog.dialog_text = "You received 10 energy and 100 coins."
+	dialog.dialog_text = str(result.get("message", "Daily reward unavailable."))
 	add_child(dialog)
 	dialog.popup_centered()
