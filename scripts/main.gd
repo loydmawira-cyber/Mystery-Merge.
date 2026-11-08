@@ -409,7 +409,8 @@ func _apply_energy_regen() -> void:
 	last_energy_time += gained * 120
 
 func _save_game() -> void:
-	last_energy_time = int(Time.get_unix_time_from_system())
+	if last_energy_time <= 0:
+		last_energy_time = int(Time.get_unix_time_from_system())
 	var data := {
 		"board": board, "energy": energy, "coins": coins, "gems": gems,
 		"task_level": task_level, "task_goal": task_goal, "task_done": task_done,
