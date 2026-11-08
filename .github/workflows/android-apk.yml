@@ -87,13 +87,15 @@ jobs:
       - name: Diagnose Android export configuration
         run: |
           echo "Export template directory:"
-          find "$HOME/.local/share/godot/export_templates/4.3.stable" -maxdepth 1 -type f -printf "%f %s bytes\\n" | sort
+          find "$HOME/.local/share/godot/export_templates/4.3.stable" -maxdepth 1 -type f -printf "%f %s bytes\n" | sort
           echo "Android SDK components:"
           ls -1 "$ANDROID_HOME/platforms"
           ls -1 "$ANDROID_HOME/build-tools"
           ls -1 "$ANDROID_HOME/ndk"
+          echo "Command-line tools:"
+          ls -lah "$ANDROID_HOME/cmdline-tools/latest"
           echo "Debug signing configuration:"
-          grep -E \"keystore/debug|package/unique_name|package/signed\" export_presets.cfg
+          grep -E 'keystore/debug|package/unique_name|package/signed' export_presets.cfg
           echo "Godot version:"
           godot --version
 
