@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenes": [
+    {"id":"scene_midnight_photo","text":"The photograph was taken after midnight."},
+    {"id":"scene_hidden_room","text":"The locket was never stolen."},
+    {"id":"scene_locket_truth","text":"Someone inside the mansion hid it."}
+  ]
+}
