@@ -28,12 +28,14 @@ func _ready() -> void:
 	_refresh_task()
 
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color("091923")
+	var bg := TextureRect.new()
+	bg.texture = load("res://assets/merge_evidence_bg.svg")
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var glow := ColorRect.new()
-	glow.color = Color(0.07, 0.22, 0.27, 0.22)
+	glow.color = Color(0.015, 0.045, 0.065, 0.30)
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(glow)
 	var outer := MarginContainer.new()
@@ -64,7 +66,7 @@ func _build_ui() -> void:
 	gem_label = _resource_chip(top, "◆", "38", Color("d9a4ff"))
 
 	var case_card := PanelContainer.new()
-	case_card.add_theme_stylebox_override("panel", UI.panel(Color("1b3945"), UI.GOLD_DARK, 13))
+	case_card.add_theme_stylebox_override("panel", UI.panel(Color("102d39"), UI.GOLD_DARK, 13))
 	root.add_child(case_card)
 	var case_row := HBoxContainer.new()
 	case_row.add_theme_constant_override("separation", 10)
@@ -83,7 +85,7 @@ func _build_ui() -> void:
 	case_row.add_child(cases)
 
 	var objective := PanelContainer.new()
-	objective.add_theme_stylebox_override("panel", UI.panel(Color("d9c39e"), Color("9c7440"), 10))
+	objective.add_theme_stylebox_override("panel", UI.panel(Color("e4d0aa"), Color("9c7440"), 10))
 	root.add_child(objective)
 	var obj_row := HBoxContainer.new()
 	objective.add_child(obj_row)
@@ -117,7 +119,7 @@ func _build_ui() -> void:
 	board_head.add_child(_label("7 × 9  ·  TAP OR DRAG TO MERGE", 9, UI.MUTED))
 	var board_panel := PanelContainer.new()
 	board_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	board_panel.add_theme_stylebox_override("panel", UI.panel(Color("0b2732"), Color("39727a"), 12))
+	board_panel.add_theme_stylebox_override("panel", UI.panel(Color("08232e"), Color("b58b4c"), 12))
 	root.add_child(board_panel)
 	board_grid = GridContainer.new()
 	board_grid.columns = GameState.BOARD_COLUMNS
@@ -131,7 +133,7 @@ func _build_ui() -> void:
 		board_tiles.append(tile)
 
 	var inventory_panel := PanelContainer.new()
-	inventory_panel.add_theme_stylebox_override("panel", UI.panel(Color("132f3b"), UI.GOLD_DARK, 11))
+	inventory_panel.add_theme_stylebox_override("panel", UI.panel(Color("102b37"), UI.GOLD_DARK, 11))
 	root.add_child(inventory_panel)
 	var inv_col := VBoxContainer.new()
 	inv_col.add_theme_constant_override("separation", 4)
