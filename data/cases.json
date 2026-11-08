@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "case_01",
+      "title": "The Missing Locket",
+      "description": "A family heirloom has vanished from an old mansion.",
+      "locations": ["study", "garden_room", "locked_attic"],
+      "tasks": ["task_photo", "task_key", "task_note", "task_footprint", "task_locket"],
+      "story_scenes": ["scene_midnight_photo", "scene_hidden_room", "scene_locket_truth"],
+      "completion_rewards": {"coins": 500, "gems": 10},
+      "next_case_id": "case_02"
+    }
+  ]
+}
