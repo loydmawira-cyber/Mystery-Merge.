@@ -79,8 +79,10 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path . --quit
 
-      - name: Smoke-run the merge board scene
-        run: godot --headless --path . --quit-after 90 res://scenes/MergeBoard.tscn
+      - name: Smoke-run the main game and merge board
+        run: |
+          godot --headless --path . --quit-after 90
+          godot --headless --path . --quit-after 90 res://scenes/MergeBoard.tscn
 
       - name: Diagnose Android export configuration
         run: |
