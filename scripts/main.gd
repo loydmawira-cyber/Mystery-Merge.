@@ -28,6 +28,8 @@ var task_goal := 3
 var task_done := 0
 var case_complete := false
 var sound_on := true
+var music_on := true
+var notifications_on := true
 var last_energy_time := 0
 var daily_claimed_day := -1
 var board_grid: GridContainer
@@ -39,6 +41,9 @@ var story_label: Label
 var status_label: Label
 var tile_buttons: Array[Button] = []
 var shop_panel: PanelContainer
+var settings_panel: PanelContainer
+var sound_button: Button
+var music_button: Button
 var timer: Timer
 
 func _ready() -> void:
@@ -169,11 +174,17 @@ func _build_ui() -> void:
 	_add_action(actions, "📖 CASE FILE", _show_case_file)
 	_add_action(actions, "▶ REWARD VIDEO", _reward_ad)
 	_add_action(actions, "💾 SAVE", _save_game)
+	_add_action(actions, "⚙ SETTINGS", _open_settings)
 	shop_panel = PanelContainer.new()
 	shop_panel.visible = false
 	shop_panel.add_theme_stylebox_override("panel", _panel_style(Color("#314757")))
 	root.add_child(shop_panel)
 	_build_shop()
+	settings_panel = PanelContainer.new()
+	settings_panel.visible = false
+	settings_panel.add_theme_stylebox_override("panel", _panel_style(Color("#314757")))
+	root.add_child(settings_panel)
+	_build_settings()
 
 func _stat_label(value: String) -> Label:
 	var l := Label.new()
@@ -216,6 +227,45 @@ func _add_action(parent: GridContainer, caption: String, callback: Callable) -> 
 	b.add_theme_stylebox_override("normal", _panel_style(Color("#294454")))
 	b.pressed.connect(callback)
 	parent.add_child(b)
+
+func _build_settings() -> void:
+	var box := VBoxContainer.new()
+	settings_panel.add_child(box)
+	var heading := Label.new()
+	heading.text = "GAME SETTINGS"
+	heading.add_theme_color_override("font_color", GOLD)
+	box.add_child(heading)
+	sound_button = Button.new()
+	sound_button.pressed.connect(_toggle_sound)
+	box.add_child(sound_button)
+	music_button = Button.new()
+	music_button.pressed.connect(_toggle_music)
+	box.add_child(music_button)
+	var close := Button.new()
+	close.text = "Close"
+	close.pressed.connect(func(): settings_panel.visible = false)
+	box.add_child(close)
+	_refresh_settings()
+
+func _refresh_settings() -> void:
+	if sound_button != null:
+		sound_button.text = "Sound: ON" if sound_on else "Sound: OFF"
+	if music_button != null:
+		music_button.text = "Music: ON" if music_on else "Music: OFF"
+
+func _toggle_sound() -> void:
+	sound_on = not sound_on
+	_refresh_settings()
+	_save_game()
+
+func _toggle_music() -> void:
+	music_on = not music_on
+	_refresh_settings()
+	_save_game()
+
+func _open_settings() -> void:
+	settings_panel.visible = not settings_panel.visible
+	shop_panel.visible = false
 
 func _build_shop() -> void:
 	var box := VBoxContainer.new()
@@ -363,6 +413,7 @@ func _buy_energy() -> void:
 
 func _open_shop() -> void:
 	shop_panel.visible = not shop_panel.visible
+	settings_panel.visible = false
 	_refresh()
 
 func _claim_daily() -> void:
@@ -415,7 +466,8 @@ func _save_game() -> void:
 		"board": board, "energy": energy, "coins": coins, "gems": gems,
 		"task_level": task_level, "task_goal": task_goal, "task_done": task_done,
 		"case_complete": case_complete, "last_energy_time": last_energy_time,
-		"daily_claimed_day": daily_claimed_day, "sound_on": sound_on
+		"daily_claimed_day": daily_claimed_day, "sound_on": sound_on,
+		"music_on": music_on, "notifications_on": notifications_on
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -438,6 +490,8 @@ func _load_game() -> void:
 			last_energy_time = int(parsed.get("last_energy_time", 0))
 			daily_claimed_day = int(parsed.get("daily_claimed_day", -1))
 			sound_on = bool(parsed.get("sound_on", true))
+			music_on = bool(parsed.get("music_on", true))
+			notifications_on = bool(parsed.get("notifications_on", true))
 			var saved_board = parsed.get("board", [])
 			if saved_board is Array and saved_board.size() == ROWS * COLS:
 				board.clear()
