@@ -95,7 +95,12 @@ jobs:
           echo "Command-line tools:"
           ls -lah "$ANDROID_HOME/cmdline-tools/latest"
           echo "Debug signing configuration:"
-          grep -E 'keystore/debug|package/unique_name|package/signed' export_presets.cfg
+          python3 - <<'PY'
+          from pathlib import Path
+          for line in Path("export_presets.cfg").read_text(encoding="utf-8").splitlines():
+              if line.startswith(("keystore/debug", "package/unique_name", "package/signed")):
+                  print(line)
+          PY
           echo "Godot version:"
           godot --version
 
