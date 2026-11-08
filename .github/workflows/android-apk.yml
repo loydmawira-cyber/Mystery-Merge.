@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mystery-merge-android
+  cancel-in-progress: true
+
 jobs:
   export-android:
     name: Export Godot Android APK
