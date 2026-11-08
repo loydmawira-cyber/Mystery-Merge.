@@ -25,6 +25,13 @@ Portrait-first Godot 4.3 mystery merge game for Android.
 - Search the Study, Garden Room or Locked Attic generators to create new level-one clues.
 - Move excess items into the eight-slot pocket inventory.
 
+## Branding and Android launcher
+
+- Custom Mystery Merge detective app icon (gold-framed portrait and magnifying glass).
+- Android adaptive launcher foreground and deep-teal background layers.
+- Branded portrait launch splash screen with the Mystery Merge title.
+- The Android workflow renders the SVG artwork into the exact PNG sizes required by the Android launcher before Godot imports and exports the project.
+
 ## Android build
 
 GitHub Actions builds a debug APK on pushes to main and manual workflow dispatch. The APK is uploaded as the MysteryMerge-debug-apk artifact when the export job passes.
