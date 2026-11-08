@@ -11,11 +11,11 @@ func configure(controller: Control, slot_zone: String, index: int) -> void:
 	board_controller = controller
 	zone = slot_zone
 	slot_index = index
-	custom_minimum_size = Vector2(0, 54 if zone == "board" else 42)
+	custom_minimum_size = Vector2(0, 0)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	focus_mode = Control.FOCUS_NONE
-	add_theme_font_size_override("font_size", 10 if zone == "board" else 9)
+	add_theme_font_size_override("font_size", 11 if zone == "board" else 10)
 	add_theme_color_override("font_color", UI.CREAM)
 	add_theme_color_override("font_hover_color", UI.CREAM)
 	pressed.connect(_on_pressed)
@@ -52,7 +52,7 @@ func _apply_style(bg: Color, border: Color) -> void:
 	style.bg_color = bg
 	style.border_color = border
 	style.set_border_width_all(2 if is_selected else 1)
-	style.set_corner_radius_all(7)
+	style.set_corner_radius_all(5)
 	style.content_margin_left = 1
 	style.content_margin_right = 1
 	style.content_margin_top = 1
