@@ -286,6 +286,20 @@ func purchase_energy() -> Dictionary:
 	_save_game()
 	return {"ok": true, "message": "Purchased 25 energy for 500 coins."}
 
+func purchase_energy_pack(coin_cost: int, energy_amount: int) -> Dictionary:
+	if coin_cost <= 0 or energy_amount <= 0:
+		return {"ok": false, "message": "That supply pack is unavailable."}
+	if coins < coin_cost:
+		return {"ok": false, "message": "Not enough coins for this supply pack."}
+	if energy >= max_energy:
+		return {"ok": false, "message": "Your energy is already full."}
+	var gained := mini(energy_amount, max_energy - energy)
+	coins -= coin_cost
+	energy += gained
+	economy_changed.emit()
+	_save_game()
+	return {"ok": true, "message": "Purchased %d energy for %d coins." % [gained, coin_cost]}
+
 func _apply_offline_energy() -> void:
 	var now := int(Time.get_unix_time_from_system())
 	if last_energy_timestamp <= 0:
