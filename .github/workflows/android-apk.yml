@@ -66,10 +66,20 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path . --quit
 
+      - name: Diagnose Android export environment
+        run: |
+          echo "Godot export templates:"
+          ls -lah "$HOME/.local/share/godot/export_templates/4.3.stable"
+          echo "Android SDK platform:"
+          ls -lah "$ANDROID_HOME/platforms/android-34"
+          echo "Android build tools:"
+          ls -lah "$ANDROID_HOME/build-tools/34.0.0"
+          java -version
+
       - name: Export debug APK
         run: |
           mkdir -p build
-          godot --headless --path . --export-debug "Android" build/MysteryMerge-debug.apk
+          godot --headless --verbose --path . --export-debug "Android" build/MysteryMerge-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
