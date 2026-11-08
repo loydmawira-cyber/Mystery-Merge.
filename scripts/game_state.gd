@@ -23,6 +23,7 @@ var completed_tasks: Array[String] = []
 var current_task_index: int = 0
 var daily_claimed_day: int = -1
 var last_energy_timestamp: int = 0
+var energy_timer: Timer
 var save_path: String = "user://mystery_merge_save.json"
 var board_items: Array = []
 var inventory_items: Array = []
@@ -40,6 +41,11 @@ func _ready() -> void:
 	_apply_offline_energy()
 	initialize_board()
 	_save_game()
+	energy_timer = Timer.new()
+	energy_timer.wait_time = 10.0
+	energy_timer.timeout.connect(_on_energy_tick)
+	add_child(energy_timer)
+	energy_timer.start()
 func _load_content_data() -> void:
 	var evidence_data := _read_json("res://data/evidence_items.json")
 	for item in evidence_data.get("items", []):
@@ -345,3 +351,15 @@ func reset_local_save() -> void:
 	_save_game()
 	economy_changed.emit()
 	progress_changed.emit()
+
+func _on_energy_tick() -> void:
+	if energy >= max_energy:
+		last_energy_timestamp = int(Time.get_unix_time_from_system())
+		return
+	var now := int(Time.get_unix_time_from_system())
+	var gained := mini(max_energy - energy, int(maxi(0, now - last_energy_timestamp) / 120))
+	if gained > 0:
+		energy += gained
+		last_energy_timestamp += gained * 120
+		economy_changed.emit()
+		_save_game()
