@@ -6,103 +6,100 @@ func _ready() -> void:
 	_build()
 
 func _build() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color("091923")
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	var decor := ColorRect.new()
-	decor.color = Color(0.08, 0.23, 0.27, 0.25)
-	decor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(decor)
+	var backdrop := TextureRect.new()
+	backdrop.texture = load("res://assets/home_mansion.svg")
+	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(backdrop)
+	var shade := ColorRect.new()
+	shade.color = Color(0.015, 0.045, 0.075, 0.48)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(shade)
+
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
 	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 22)
 	margin.add_theme_constant_override("margin_right", 22)
 	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 18)
-	add_child(margin)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	scroll.add_child(margin)
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 12)
+	root.add_theme_constant_override("separation", 13)
 	margin.add_child(root)
 
-	var top := HBoxContainer.new()
-	root.add_child(top)
+	var header := HBoxContainer.new()
+	root.add_child(header)
 	var logo := Label.new()
-	logo.text = "✦ MYSTERY\n   MERGE"
-	logo.add_theme_font_size_override("font_size", 28)
+	logo.text = "◉ MYSTERY\n    MERGE"
+	logo.add_theme_font_size_override("font_size", 31)
 	logo.add_theme_color_override("font_color", UI.GOLD)
-	top.add_child(logo)
+	header.add_child(logo)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(spacer)
-	var gear := _button("⚙", UI.NAVY_LIGHT, UI.CREAM)
-	gear.custom_minimum_size = Vector2(48, 48)
-	gear.pressed.connect(func(): NavigationManager.show_screen("settings"))
-	top.add_child(gear)
+	header.add_child(spacer)
+	var settings := _button("⚙", Color("142d3a"), UI.CREAM)
+	settings.custom_minimum_size = Vector2(48, 48)
+	settings.pressed.connect(func(): NavigationManager.show_screen("settings"))
+	header.add_child(settings)
 
-	var motto := Label.new()
-	motto.text = "SMALL CLUES. BIGGER TRUTHS."
+	var motto := _label("SMALL CLUES. BIGGER TRUTHS.", 11, Color("d5c49f"))
 	motto.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	motto.add_theme_color_override("font_color", UI.MUTED)
-	motto.add_theme_font_size_override("font_size", 11)
 	root.add_child(motto)
 
 	var wallet := PanelContainer.new()
-	wallet.add_theme_stylebox_override("panel", UI.panel(Color("102c38"), UI.GOLD_DARK, 14))
+	wallet.add_theme_stylebox_override("panel", UI.panel(Color(0.025, 0.12, 0.17, 0.94), UI.GOLD_DARK, 13))
 	root.add_child(wallet)
 	var wallet_row := HBoxContainer.new()
+	wallet_row.add_theme_constant_override("separation", 4)
 	wallet.add_child(wallet_row)
-	wallet_row.add_child(_stat("⚡", str(GameState.energy) + "/" + str(GameState.max_energy)))
+	wallet_row.add_child(_stat("⚡", "%d/%d" % [GameState.energy, GameState.max_energy]))
 	wallet_row.add_child(_stat("◉", _commas(GameState.coins)))
 	wallet_row.add_child(_stat("◆", str(GameState.gems)))
 
 	var spacer_top := Control.new()
-	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer_top.custom_minimum_size.y = 170
 	root.add_child(spacer_top)
+
 	var case_panel := PanelContainer.new()
-	case_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	case_panel.add_theme_stylebox_override("panel", UI.panel(Color("173744"), UI.GOLD, 22))
+	case_panel.add_theme_stylebox_override("panel", UI.panel(Color("e5d0a9"), Color("b98a43"), 17))
 	root.add_child(case_panel)
 	var case_content := VBoxContainer.new()
-	case_content.alignment = BoxContainer.ALIGNMENT_CENTER
-	case_content.add_theme_constant_override("separation", 12)
+	case_content.add_theme_constant_override("separation", 10)
 	case_panel.add_child(case_content)
-	var icon := Label.new()
-	icon.text = "⌂"
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.add_theme_font_size_override("font_size", 92)
-	icon.add_theme_color_override("font_color", UI.GOLD)
-	case_content.add_child(icon)
-	var eyebrow := Label.new()
-	eyebrow.text = "YOUR FIRST INVESTIGATION"
+
+	var eyebrow := _label("YOUR FIRST INVESTIGATION", 10, Color("86612e"))
 	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.add_theme_font_size_override("font_size", 10)
-	eyebrow.add_theme_color_override("font_color", UI.MUTED)
 	case_content.add_child(eyebrow)
-	var heading := Label.new()
-	heading.text = "CASE 01\nTHE MISSING LOCKET"
+	var heading := _label("CASE 01\nTHE MISSING LOCKET", 29, Color("241a14"))
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	heading.add_theme_font_size_override("font_size", 29)
-	heading.add_theme_color_override("font_color", UI.CREAM)
 	case_content.add_child(heading)
-	var desc := Label.new()
-	desc.text = "A family heirloom has vanished from an old mansion. Search the rooms, restore the evidence and discover who hid the truth."
+	var rule := ColorRect.new()
+	rule.color = Color("b28a4d")
+	rule.custom_minimum_size.y = 2
+	case_content.add_child(rule)
+	var desc := _label("A family heirloom has vanished from an old mansion. Search the rooms, restore the evidence and discover who hid the truth.", 14, Color("493a2a"))
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_color_override("font_color", UI.PAPER)
 	case_content.add_child(desc)
-	var progress := Label.new()
-	progress.text = GameState.get_task_progress_text()
+	var progress := _label(GameState.get_task_progress_text(), 13, Color("765326"))
 	progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	progress.add_theme_color_override("font_color", UI.GOLD)
 	case_content.add_child(progress)
-	var play := _button("CONTINUE INVESTIGATION   ›", UI.GOLD, UI.INK)
-	play.custom_minimum_size.y = 62
+	var play := _button("CONTINUE INVESTIGATION     ›", Color("07515a"), UI.CREAM)
+	play.custom_minimum_size.y = 58
 	play.pressed.connect(func(): NavigationManager.show_screen("board"))
 	case_content.add_child(play)
-	var spacer_bottom := Control.new()
-	spacer_bottom.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(spacer_bottom)
+
+	var daily := _button("✦  DAILY DETECTIVE GIFT  ·  +100 COINS / +10 ENERGY", Color("123a45"), UI.CREAM)
+	daily.custom_minimum_size.y = 48
+	daily.add_theme_font_size_override("font_size", 11)
+	daily.pressed.connect(_daily_reward)
+	root.add_child(daily)
 
 	var nav := HBoxContainer.new()
 	nav.add_theme_constant_override("separation", 7)
@@ -110,33 +107,34 @@ func _build() -> void:
 	_add_nav(nav, "▦\nMERGE", "board")
 	_add_nav(nav, "▤\nCASES", "cases")
 	_add_nav(nav, "♜\nSHOP", "shop")
-	var daily := _button("✦  DAILY DETECTIVE GIFT  ·  +100 COINS / +10 ENERGY", UI.TEAL, UI.CREAM)
-	daily.custom_minimum_size.y = 48
-	daily.add_theme_font_size_override("font_size", 11)
-	daily.pressed.connect(_daily_reward)
-	root.add_child(daily)
 
-func _stat(symbol: String, value: String) -> Label:
+func _label(value: String, size: int, color: Color) -> Label:
 	var l := Label.new()
-	l.text = symbol + "  " + value
-	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_color_override("font_color", UI.CREAM)
-	l.add_theme_font_size_override("font_size", 12)
+	l.text = value
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	return l
 
-func _button(text_value: String, bg: Color, fg: Color) -> Button:
+func _stat(symbol: String, value: String) -> Label:
+	var l := _label(symbol + "  " + value, 13, UI.CREAM)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return l
+
+func _button(caption: String, bg: Color, fg: Color) -> Button:
 	var b := Button.new()
-	b.text = text_value
-	b.add_theme_font_size_override("font_size", 16)
+	b.text = caption
+	b.add_theme_font_size_override("font_size", 15)
 	b.add_theme_color_override("font_color", fg)
 	b.add_theme_color_override("font_hover_color", fg)
-	b.add_theme_stylebox_override("normal", UI.button_style(bg))
-	b.add_theme_stylebox_override("hover", UI.button_style(bg.lightened(0.08), UI.GOLD))
+	b.add_theme_stylebox_override("normal", UI.button_style(bg, UI.GOLD))
+	b.add_theme_stylebox_override("hover", UI.button_style(bg.lightened(0.09), UI.GOLD))
+	b.add_theme_stylebox_override("pressed", UI.button_style(bg.darkened(0.1), UI.GOLD))
 	return b
 
 func _add_nav(parent: HBoxContainer, caption: String, screen: String) -> void:
-	var b := _button(caption, UI.NAVY_LIGHT, UI.CREAM)
+	var b := _button(caption, Color("102b38"), UI.CREAM)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.custom_minimum_size.y = 58
 	b.add_theme_font_size_override("font_size", 13)
