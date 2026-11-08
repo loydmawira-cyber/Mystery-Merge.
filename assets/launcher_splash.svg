@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+<defs>
+ <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#061525"/><stop offset=".5" stop-color="#092c3b"/><stop offset="1" stop-color="#030b16"/></linearGradient>
+ <radialGradient id="light"><stop stop-color="#c88b32" stop-opacity=".5"/><stop offset="1" stop-color="#c88b32" stop-opacity="0"/></radialGradient>
+ <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff2b6"/><stop offset=".5" stop-color="#e6b84d"/><stop offset="1" stop-color="#8d531f"/></linearGradient>
+</defs>
+<rect width="720" height="1280" fill="url(#bg)"/><circle cx="360" cy="520" r="500" fill="url(#light)"/>
+<path d="M0 690V420l80-70 52 35 75-175 63 95 84-150 75 140 63-90 68 110 70-40 90 120v455H0Z" fill="#071321"/>
+<g fill="#d9a64d" opacity=".75"><rect x="90" y="405" width="23" height="48"/><rect x="240" y="325" width="24" height="55"/><rect x="420" y="350" width="24" height="58"/><rect x="590" y="450" width="22" height="44"/></g>
+<path d="M0 920q180-90 360 0t360 0v360H0Z" fill="#020812"/>
+<circle cx="360" cy="500" r="175" fill="none" stroke="url(#gold)" stroke-width="10"/>
+<circle cx="360" cy="500" r="157" fill="#082637" fill-opacity=".45" stroke="#f3d58c" stroke-width="2"/>
+<path d="M250 650c14-110 50-172 110-190 60 18 96 80 110 190v65H250Z" fill="#3b302b" stroke="#d7a04b" stroke-width="4"/>
+<path d="M278 454c-8-78 25-129 82-129s90 51 82 129c-8 69-43 111-82 111s-74-42-82-111Z" fill="#986247"/>
+<path d="M238 414c20-97 104-128 181-80 23 15 35 39 39 71-61-30-151-26-220 9Z" fill="#111722" stroke="url(#gold)" stroke-width="8"/>
+<path d="M260 413c43-22 112-28 179-4" fill="none" stroke="#f3d58c" stroke-width="5"/>
+<circle cx="472" cy="598" r="66" fill="none" stroke="url(#gold)" stroke-width="13"/><path d="M519 646l60 63" stroke="url(#gold)" stroke-width="20" stroke-linecap="round"/>
+<text x="360" y="845" text-anchor="middle" font-family="Georgia,serif" font-size="77" font-weight="bold" fill="url(#gold)" stroke="#281a0c" stroke-width="2">MYSTERY</text>
+<text x="360" y="930" text-anchor="middle" font-family="Georgia,serif" font-size="91" font-weight="bold" fill="url(#gold)" stroke="#281a0c" stroke-width="2">MERGE</text>
+<path d="M140 975H580" stroke="url(#gold)" stroke-width="3"/><text x="360" y="1030" text-anchor="middle" font-family="Georgia,serif" font-size="24" letter-spacing="7" fill="#f0dba8">MERGE CLUES • SOLVE CASES</text>
+<text x="360" y="1075" text-anchor="middle" font-family="Georgia,serif" font-size="24" letter-spacing="5" fill="#f0dba8">UNCOVER THE TRUTH</text>
+<path d="M170 1140H550" stroke="#b88b43" stroke-width="2"/><circle cx="360" cy="1140" r="7" fill="#f3d58c"/>
+</svg>
