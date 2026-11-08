@@ -78,10 +78,23 @@ jobs:
       - name: Smoke-run the merge board scene
         run: godot --headless --path . --quit-after 90 res://scenes/MergeBoard.tscn
 
+      - name: Diagnose Android export configuration
+        run: |
+          echo "Export template directory:"
+          find "$HOME/.local/share/godot/export_templates/4.3.stable" -maxdepth 1 -type f -printf "%f %s bytes\\n" | sort
+          echo "Android SDK components:"
+          ls -1 "$ANDROID_HOME/platforms"
+          ls -1 "$ANDROID_HOME/build-tools"
+          ls -1 "$ANDROID_HOME/ndk"
+          echo "Debug signing configuration:"
+          grep -E \"keystore/debug|package/unique_name|package/signed\" export_presets.cfg
+          echo "Godot version:"
+          godot --version
+
       - name: Export debug APK
         run: |
           mkdir -p build
-          godot --headless --path . --export-debug "Android" build/MysteryMerge-debug.apk
+          godot --headless --verbose --path . --export-debug "Android" build/MysteryMerge-debug.apk 2>&1 | tee build/android-export.log
           test -s build/MysteryMerge-debug.apk
 
       - name: Upload APK
