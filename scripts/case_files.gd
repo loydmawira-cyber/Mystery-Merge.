@@ -1,17 +1,27 @@
 extends Control
 const UI = preload("res://scripts/ui_theme.gd")
 func _ready() -> void:
-	var bg := ColorRect.new()
-	bg.color = UI.NAVY
+	var bg := TextureRect.new()
+	bg.texture = load("res://assets/merge_evidence_bg.svg")
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+	var shade := ColorRect.new()
+	shade.color = Color(0.015, 0.035, 0.05, 0.42)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(shade)
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
 	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 20)
 	margin.add_theme_constant_override("margin_right", 20)
 	margin.add_theme_constant_override("margin_top", 24)
 	margin.add_theme_constant_override("margin_bottom", 20)
-	add_child(margin)
+	scroll.add_child(margin)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
 	margin.add_child(box)
@@ -32,18 +42,18 @@ func _ready() -> void:
 	]
 	for entry in locations:
 		var panel := PanelContainer.new()
-		panel.add_theme_stylebox_override("panel", UI.panel(Color("193542"), UI.GOLD_DARK, 12))
+		panel.add_theme_stylebox_override("panel", UI.panel(Color("e2cfaa"), UI.GOLD_DARK, 12))
 		box.add_child(panel)
 		var col := VBoxContainer.new()
 		panel.add_child(col)
 		var h := Label.new()
 		h.text = str(entry[0]) + ("  ·  UNLOCKED" if entry[2] else "  ·  LOCKED")
-		h.add_theme_color_override("font_color", UI.GOLD if entry[2] else UI.MUTED)
+		h.add_theme_color_override("font_color", Color("765126") if entry[2] else Color("8b806c"))
 		col.add_child(h)
 		var d := Label.new()
 		d.text = str(entry[1])
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		d.add_theme_color_override("font_color", UI.CREAM)
+		d.add_theme_color_override("font_color", Color("493a2a"))
 		col.add_child(d)
 	var progress := Label.new()
 	progress.text = GameState.get_task_progress_text()
@@ -53,7 +63,7 @@ func _ready() -> void:
 		var completed := GameState.completed_tasks.has(str(task.get("id", "")))
 		var row := Label.new()
 		row.text = ("✓  " if completed else "○  ") + str(task.get("title", "Evidence task"))
-		row.add_theme_color_override("font_color", UI.CREAM if completed else UI.MUTED)
+		row.add_theme_color_override("font_color", Color("f1dfb7") if completed else Color("c8b58f"))
 		box.add_child(row)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
