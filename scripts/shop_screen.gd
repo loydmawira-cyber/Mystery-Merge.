@@ -51,7 +51,7 @@ func _ready() -> void:
 	var back := _button("BACK TO CASE", UI.NAVY_LIGHT, UI.CREAM)
 	back.pressed.connect(func(): NavigationManager.show_screen("board"))
 	box.add_child(back)
-func _card(parent: VBoxContainer, heading: String, detail: String, description: String) -> PanelContainer:
+func _card(parent: VBoxContainer, heading: String, detail: String, description: String) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", UI.panel(Color("1a3542"), UI.GOLD_DARK, 16))
 	parent.add_child(panel)
@@ -72,7 +72,7 @@ func _card(parent: VBoxContainer, heading: String, detail: String, description: 
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.add_theme_color_override("font_color", UI.MUTED)
 	col.add_child(desc)
-	return panel
+	return col
 func _button(caption: String, color: Color, fg: Color) -> Button:
 	var b := Button.new()
 	b.text = caption
