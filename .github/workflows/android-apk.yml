@@ -44,42 +44,45 @@ jobs:
       - name: Install Android export dependencies
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest"
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
 
-      - name: Configure Godot Android SDK paths
+      - name: Configure Godot Android SDK paths and debug keystore
         run: |
-          mkdir -p ~/.config/godot
+          mkdir -p ~/.config/godot ~/.android build
           cat > ~/.config/godot/editor_settings-4.tres <<EOF
           [gd_resource type="EditorSettings" format=3]
           [resource]
           export/android/android_sdk_path = "$ANDROID_HOME"
           export/android/java_sdk_path = "$JAVA_HOME"
           EOF
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          python3 - "$HOME/.android/debug.keystore" <<'PY'
+          from pathlib import Path
+          import sys
+          preset = Path("export_presets.cfg")
+          content = preset.read_text(encoding="utf-8")
+          content = content.replace('keystore/debug=""', f'keystore/debug="{sys.argv[1]}"')
+          content = content.replace('keystore/debug_user=""', 'keystore/debug_user="androiddebugkey"')
+          content = content.replace('keystore/debug_password=""', 'keystore/debug_password="android"')
+          if 'keystore/debug=""' in content or 'keystore/debug_user=""' in content or 'keystore/debug_password=""' in content:
+              raise SystemExit("Could not configure the Android debug keystore in export_presets.cfg")
+          preset.write_text(content, encoding="utf-8")
+          PY
 
-      - name: Create temporary Android debug keystore
-        run: |
-          keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000 -keyalg RSA -keysize 2048
-          sed -i "s|keystore/debug=\"\"|keystore/debug=\"$GITHUB_WORKSPACE/debug.keystore\"|" export_presets.cfg
-          sed -i "s|keystore/debug_user=\"\"|keystore/debug_user=\"androiddebugkey\"|" export_presets.cfg
-          sed -i "s|keystore/debug_password=\"\"|keystore/debug_password=\"android\"|" export_presets.cfg
+      - name: Validate game data
+        run: python3 tests/validate_game_data.py
 
       - name: Import project
         run: godot --headless --editor --path . --quit
 
-      - name: Diagnose Android export environment
-        run: |
-          echo "Godot export templates:"
-          ls -lah "$HOME/.local/share/godot/export_templates/4.3.stable"
-          echo "Android SDK platform:"
-          ls -lah "$ANDROID_HOME/platforms/android-34"
-          echo "Android build tools:"
-          ls -lah "$ANDROID_HOME/build-tools/34.0.0"
-          java -version
+      - name: Smoke-run the merge board scene
+        run: godot --headless --path . --quit-after 90 res://scenes/MergeBoard.tscn
 
       - name: Export debug APK
         run: |
           mkdir -p build
-          godot --headless --verbose --path . --export-debug "Android" build/MysteryMerge-debug.apk
+          godot --headless --path . --export-debug "Android" build/MysteryMerge-debug.apk
+          test -s build/MysteryMerge-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

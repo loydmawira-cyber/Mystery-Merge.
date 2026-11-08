@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/simple_screen.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/merge_board.gd" id="1"]
 
 [node name="MergeBoard" type="Control"]
 layout_mode = 3
@@ -10,5 +10,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
-screen_title = "Merge Board"
-screen_description = "The playable 7 × 9 evidence board and merge mechanics are planned for a later stage."
