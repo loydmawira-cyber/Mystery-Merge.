@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "items": [
+    {"id":"starter_pack","title":"Detective Starter Pack","price":"$1.99 (simulation)","contents":{"gems":300,"energy":500,"outfit":"exclusive_detective","inventory_slots":1,"ad_free_hours":24},"item_type":"bundle","is_consumable":false,"is_cosmetic":false},
+    {"id":"small_energy","title":"Small Energy Refill","price":"50 gems (simulation)","contents":{"energy":25},"item_type":"energy","is_consumable":true,"is_cosmetic":false},
+    {"id":"gem_pouch","title":"Gem Pouch","price":"$0.99 (simulation)","contents":{"gems":100},"item_type":"currency","is_consumable":true,"is_cosmetic":false},
+    {"id":"study_decor","title":"Study Decoration Pack","price":"120 gems (simulation)","contents":{"decoration":"study_lamp"},"item_type":"decoration","is_consumable":false,"is_cosmetic":true},
+    {"id":"detective_outfit","title":"Premium Detective Outfit","price":"200 gems (simulation)","contents":{"outfit":"premium_detective"},"item_type":"outfit","is_consumable":false,"is_cosmetic":true}
+  ]
+}
