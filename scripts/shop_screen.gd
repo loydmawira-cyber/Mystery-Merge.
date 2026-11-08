@@ -1,89 +1,151 @@
 extends Control
+
 const UI = preload("res://scripts/ui_theme.gd")
 var feedback: Label
+var wallet: Label
+
 func _ready() -> void:
 	var bg := ColorRect.new()
-	bg.color = UI.NAVY
+	bg.color = Color("091923")
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 22)
-	margin.add_theme_constant_override("margin_right", 22)
-	margin.add_theme_constant_override("margin_top", 28)
-	margin.add_theme_constant_override("margin_bottom", 24)
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_bottom", 18)
 	add_child(margin)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 14)
-	margin.add_child(box)
-	var title := Label.new()
-	title.text = "FIELD SUPPLIES"
-	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", UI.GOLD)
-	box.add_child(title)
-	var wallet := Label.new()
-	wallet.text = "Coins: %s     Energy: %d/%d     Gems: %d" % [_commas(GameState.coins), GameState.energy, GameState.max_energy, GameState.gems]
-	wallet.add_theme_color_override("font_color", UI.CREAM)
-	box.add_child(wallet)
-	var card := _card(box, "ENERGY PACK", "25 energy · 500 coins", "Useful for searching the mansion generators.")
-	var buy := _button("BUY FOR 500 COINS", UI.GOLD, UI.INK)
-	buy.pressed.connect(func():
-		var result := GameState.purchase_energy()
-		feedback.text = str(result.message)
-		wallet.text = "Coins: %s     Energy: %d/%d     Gems: %d" % [_commas(GameState.coins), GameState.energy, GameState.max_energy, GameState.gems])
-	)
-	card.add_child(buy)
-	var ad_card := _card(box, "WATCH & EARN", "Rewarded video test offer · +10 energy", "Ad network integration is not connected in this build.")
-	var ad := _button("CLAIM TEST REWARD", UI.TEAL, UI.CREAM)
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", 12)
+	margin.add_child(root)
+	var header := HBoxContainer.new()
+	root.add_child(header)
+	var title_col := VBoxContainer.new()
+	title_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title_col)
+	title_col.add_child(_label("DETECTIVE SHOP", 27, UI.GOLD))
+	title_col.add_child(_label("SUPPORT THE MYSTERY · KEEP THE STORY GOING", 9, UI.MUTED))
+	var back := _button("‹", UI.NAVY_LIGHT, UI.CREAM)
+	back.custom_minimum_size = Vector2(44, 44)
+	back.pressed.connect(func(): NavigationManager.show_screen("board"))
+	header.add_child(back)
+	wallet = _label("", 11, UI.CREAM)
+	root.add_child(wallet)
+	var hero := PanelContainer.new()
+	hero.add_theme_stylebox_override("panel", UI.panel(Color("173744"), UI.GOLD, 20))
+	root.add_child(hero)
+	var hero_col := VBoxContainer.new()
+	hero_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	hero_col.add_theme_constant_override("separation", 9)
+	hero.add_child(hero_col)
+	hero_col.add_child(_center_label("✦  FIRST CASE SUPPLY KIT  ✦", 12, UI.GOLD))
+	hero_col.add_child(_center_label("A BRIGHTER BEGINNING", 10, UI.MUTED))
+	hero_col.add_child(_center_label("300 ◆   ·   500 ⚡   ·   +1 BAG SLOT", 16, UI.CREAM))
+	hero_col.add_child(_center_label("A generous starter bundle for a new detective.", 11, UI.PAPER))
+	var starter := _button("STARTER PACK  ·  COMING SOON", UI.GOLD, UI.INK)
+	starter.disabled = true
+	hero_col.add_child(starter)
+	var tabs := HBoxContainer.new()
+	root.add_child(tabs)
+	for t in ["⚡  ENERGY", "◆  GEMS", "✦  DECOR"]:
+		var tab := _button(t, UI.NAVY_LIGHT, UI.CREAM)
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.add_theme_font_size_override("font_size", 10)
+		tabs.add_child(tab)
+	var section := _label("FIELD ENERGY", 14, UI.GOLD)
+	root.add_child(section)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	root.add_child(grid)
+	_add_pack(grid, "100", "ENERGY", "500 coins", 500, 25)
+	_add_pack(grid, "250", "ENERGY", "1,200 coins", 1200, 60)
+	_add_pack(grid, "600", "ENERGY", "2,500 coins", 2500, 150)
+	_add_pack(grid, "1,500", "ENERGY", "5,000 coins", 5000, 400)
+	var ad_card := PanelContainer.new()
+	ad_card.add_theme_stylebox_override("panel", UI.panel(Color("123b45"), UI.TEAL_BRIGHT, 14))
+	root.add_child(ad_card)
+	var ad_col := VBoxContainer.new()
+	ad_card.add_child(ad_col)
+	ad_col.add_child(_label("OPTIONAL REWARDED VIDEO", 12, UI.GOLD))
+	ad_col.add_child(_label("Development test only — no real ad network is connected.", 10, UI.MUTED))
+	var ad := _button("CLAIM TEST REWARD  ·  +10 ENERGY", UI.TEAL, UI.CREAM)
 	ad.pressed.connect(func():
 		GameState.add_energy(10)
-		feedback.text = "Test reward granted: 10 energy. This is a development simulation, not a real ad."
-		wallet.text = "Coins: %s     Energy: %d/%d     Gems: %d" % [_commas(GameState.coins), GameState.energy, GameState.max_energy, GameState.gems]
+		feedback.text = "10 test energy added."
+		_refresh_wallet()
 	)
-	ad_card.add_child(ad)
-	feedback = Label.new()
-	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	feedback.add_theme_color_override("font_color", UI.GOLD)
-	box.add_child(feedback)
+	ad_col.add_child(ad)
+	feedback = _label("", 11, UI.GOLD)
+	root.add_child(feedback)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(spacer)
-	var back := _button("BACK TO CASE", UI.NAVY_LIGHT, UI.CREAM)
-	back.pressed.connect(func(): NavigationManager.show_screen("board"))
-	box.add_child(back)
-func _card(parent: VBoxContainer, heading: String, detail: String, description: String) -> VBoxContainer:
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UI.panel(Color("1a3542"), UI.GOLD_DARK, 16))
-	parent.add_child(panel)
+	root.add_child(spacer)
+	var footer := HBoxContainer.new()
+	root.add_child(footer)
+	var board := _button("‹  BACK TO INVESTIGATION", UI.NAVY_LIGHT, UI.CREAM)
+	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	board.pressed.connect(func(): NavigationManager.show_screen("board"))
+	footer.add_child(board)
+	var home := _button("HOME", UI.NAVY_LIGHT, UI.CREAM)
+	home.pressed.connect(func(): NavigationManager.show_screen("home"))
+	footer.add_child(home)
+	_refresh_wallet()
+
+func _add_pack(parent: GridContainer, amount: String, name: String, price: String, cost: int, energy: int) -> void:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.panel(Color("12313d"), UI.GOLD_DARK, 13))
+	parent.add_child(card)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 6)
-	panel.add_child(col)
-	var h := Label.new()
-	h.text = heading
-	h.add_theme_color_override("font_color", UI.GOLD)
-	h.add_theme_font_size_override("font_size", 17)
-	col.add_child(h)
-	var d := Label.new()
-	d.text = detail
-	d.add_theme_color_override("font_color", UI.CREAM)
-	col.add_child(d)
-	var desc := Label.new()
-	desc.text = description
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_color_override("font_color", UI.MUTED)
-	col.add_child(desc)
-	return col
-func _button(caption: String, color: Color, fg: Color) -> Button:
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 5)
+	card.add_child(col)
+	col.add_child(_center_label("⚡", 31, UI.GOLD))
+	col.add_child(_center_label(amount, 23, UI.CREAM))
+	col.add_child(_center_label(name, 10, UI.MUTED))
+	col.add_child(_center_label(price, 10, UI.PAPER))
+	var buy := _button("BUY", UI.GOLD, UI.INK)
+	buy.pressed.connect(func():
+		var result := GameState.purchase_energy_pack(cost, energy) if GameState.has_method("purchase_energy_pack") else GameState.purchase_energy()
+		feedback.text = str(result.get("message", "Purchase unavailable."))
+		_refresh_wallet()
+	)
+	col.add_child(buy)
+
+func _refresh_wallet() -> void:
+	if is_instance_valid(wallet):
+		wallet.text = "⚡ %d/%d       ◉ %s       ◆ %d" % [GameState.energy, GameState.max_energy, _commas(GameState.coins), GameState.gems]
+
+func _label(value: String, size: int, color: Color) -> Label:
+	var l := Label.new()
+	l.text = value
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return l
+
+func _center_label(value: String, size: int, color: Color) -> Label:
+	var l := _label(value, size, color)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return l
+
+func _button(value: String, bg: Color, fg: Color) -> Button:
 	var b := Button.new()
-	b.text = caption
-	b.custom_minimum_size.y = 48
+	b.text = value
+	b.custom_minimum_size.y = 42
+	b.add_theme_font_size_override("font_size", 12)
 	b.add_theme_color_override("font_color", fg)
-	b.add_theme_stylebox_override("normal", UI.button_style(color))
+	b.add_theme_color_override("font_hover_color", fg)
+	b.add_theme_stylebox_override("normal", UI.button_style(bg, UI.GOLD_DARK))
+	b.add_theme_stylebox_override("hover", UI.button_style(bg.lightened(0.08), UI.GOLD))
 	return b
+
 func _commas(value: int) -> String:
-	var digits := str(value)
+	var s := str(value)
 	var out := ""
-	while digits.length() > 3:
-		out = "," + digits.substr(digits.length() - 3) + out
-		digits = digits.substr(0, digits.length() - 3)
-	return digits + out
+	while s.length() > 3:
+		out = "," + s.substr(s.length() - 3) + out
+		s = s.substr(0, s.length() - 3)
+	return s + out
