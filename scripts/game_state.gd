@@ -17,6 +17,13 @@ var music_enabled: bool = true
 var notifications_enabled: bool = true
 var item_catalog: Dictionary = {}
 var generator_catalog: Dictionary = {}
+var task_catalog: Array = []
+var dialogue_catalog: Array = []
+var completed_tasks: Array[String] = []
+var current_task_index: int = 0
+var daily_claimed_day: int = -1
+var last_energy_timestamp: int = 0
+var save_path: String = "user://mystery_merge_save.json"
 var board_items: Array = []
 var inventory_items: Array = []
 var board_initialized: bool = false
@@ -24,15 +31,24 @@ var rng := RandomNumberGenerator.new()
 signal economy_changed
 signal progress_changed
 signal board_changed
+signal task_completed(task_id: String, story_text: String)
+signal save_loaded
 func _ready() -> void:
 	rng.randomize()
 	_load_content_data()
+	_load_game()
+	_apply_offline_energy()
 	initialize_board()
+	_save_game()
 func _load_content_data() -> void:
 	var evidence_data := _read_json("res://data/evidence_items.json")
 	for item in evidence_data.get("items", []):
 		if item is Dictionary and item.has("id"):
 			item_catalog[str(item["id"])] = item
+	var task_data := _read_json("res://data/tasks.json")
+	task_catalog = task_data.get("tasks", [])
+	var dialogue_data := _read_json("res://data/dialogue.json")
+	dialogue_catalog = dialogue_data.get("scenes", [])
 	var generator_data := _read_json("res://data/generators.json")
 	for generator in generator_data.get("generators", []):
 		if generator is Dictionary and generator.has("id"):
@@ -95,6 +111,7 @@ func transfer_item(from_zone: String, from_index: int, to_zone: String, to_index
 		_set_slot(to_zone, to_index, source_item)
 		_set_slot(from_zone, from_index, "")
 		board_changed.emit()
+		_save_game()
 		return {"ok": true, "kind": "move", "item_id": source_item, "message": "Clue moved."}
 	if source_item == target_item:
 		var item_data := get_item(source_item)
@@ -104,11 +121,14 @@ func transfer_item(from_zone: String, from_index: int, to_zone: String, to_index
 		_set_slot(to_zone, to_index, result_id)
 		_set_slot(from_zone, from_index, "")
 		board_changed.emit()
+		_register_task_result(result_id)
+		_save_game()
 		return {"ok": true, "kind": "merge", "item_id": result_id, "message": "Merged: %s" % str(get_item(result_id).get("display_name", result_id))}
 	if from_zone == "inventory" and to_zone == "inventory":
 		_set_slot(from_zone, from_index, target_item)
 		_set_slot(to_zone, to_index, source_item)
 		board_changed.emit()
+		_save_game()
 		return {"ok": true, "kind": "swap", "item_id": source_item, "message": "Inventory rearranged."}
 	return {"ok": false, "message": "Those clues do not fit together."}
 func generate_from_generator(generator_id: String) -> Dictionary:
@@ -149,22 +169,27 @@ func generate_from_generator(generator_id: String) -> Dictionary:
 	board_items[destination] = selected_item
 	current_location = generator_id
 	board_changed.emit()
+	_save_game()
 	return {"ok": true, "slot": destination, "item_id": selected_item, "message": "Found: %s" % str(get_item(selected_item).get("display_name", selected_item))}
 func spend_energy(amount: int) -> bool:
 	if amount < 0 or energy < amount:
 		return false
 	energy -= amount
 	economy_changed.emit()
+	_save_game()
 	return true
 func add_energy(amount: int) -> void:
 	energy = clampi(energy + amount, 0, max_energy)
 	economy_changed.emit()
+	_save_game()
 func add_coins(amount: int) -> void:
 	coins = maxi(0, coins + amount)
 	economy_changed.emit()
+	_save_game()
 func add_gems(amount: int) -> void:
 	gems = maxi(0, gems + amount)
 	economy_changed.emit()
+	_save_game()
 func set_progress(value: float) -> void:
 	case_progress = clampf(value, 0.0, 1.0)
 	progress_changed.emit()
@@ -189,3 +214,134 @@ func _set_slot(zone: String, index: int, item_id: String) -> void:
 		board_items[index] = item_id
 	elif zone == "inventory":
 		inventory_items[index] = item_id
+
+func get_current_task() -> Dictionary:
+	if current_task_index < 0 or current_task_index >= task_catalog.size():
+		return {}
+	return task_catalog[current_task_index]
+
+func get_task_progress_text() -> String:
+	if current_task_index >= task_catalog.size():
+		return "CASE 01 COMPLETE"
+	var task: Dictionary = get_current_task()
+	return "TASK %d/%d · %s" % [current_task_index + 1, task_catalog.size(), str(task.get("title", "Investigate"))]
+
+func _register_task_result(item_id: String) -> void:
+	if current_task_index >= task_catalog.size():
+		return
+	var task: Dictionary = get_current_task()
+	var required: Array = task.get("required_items", [])
+	if not required.has(item_id):
+		return
+	var task_id := str(task.get("id", ""))
+	if completed_tasks.has(task_id):
+		return
+	completed_tasks.append(task_id)
+	add_coins(int(task.get("coin_reward", 0)))
+	add_gems(int(task.get("gem_reward", 0)))
+	var story_id := str(task.get("story_reward", ""))
+	var story_text := "A new detail emerges from the evidence."
+	for scene in dialogue_catalog:
+		if str(scene.get("id", "")) == story_id:
+			story_text = str(scene.get("text", story_text))
+			break
+	current_task_index += 1
+	task_completed.emit(task_id, story_text)
+	progress_changed.emit()
+	_save_game()
+
+func claim_daily_reward() -> Dictionary:
+	var day := int(Time.get_unix_time_from_system() / 86400)
+	if daily_claimed_day == day:
+		return {"ok": false, "message": "Today's detective gift has already been claimed."}
+	daily_claimed_day = day
+	add_coins(100)
+	add_energy(10)
+	_save_game()
+	return {"ok": true, "message": "Daily gift: 100 coins and 10 energy."}
+
+func purchase_energy() -> Dictionary:
+	if coins < 500:
+		return {"ok": false, "message": "You need 500 coins."}
+	if energy >= max_energy:
+		return {"ok": false, "message": "Your energy is already full."}
+	coins -= 500
+	add_energy(25)
+	economy_changed.emit()
+	_save_game()
+	return {"ok": true, "message": "Purchased 25 energy for 500 coins."}
+
+func _apply_offline_energy() -> void:
+	var now := int(Time.get_unix_time_from_system())
+	if last_energy_timestamp <= 0:
+		last_energy_timestamp = now
+		return
+	var gained := mini(max_energy - energy, int(maxi(0, now - last_energy_timestamp) / 120))
+	if gained > 0:
+		energy += gained
+		last_energy_timestamp += gained * 120
+		economy_changed.emit()
+
+func _save_game() -> void:
+	last_energy_timestamp = int(Time.get_unix_time_from_system())
+	var data := {
+		"version": 1, "energy": energy, "coins": coins, "gems": gems,
+		"current_case": current_case, "current_location": current_location,
+		"case_progress": case_progress, "sound_enabled": sound_enabled,
+		"music_enabled": music_enabled, "notifications_enabled": notifications_enabled,
+		"board_items": board_items, "inventory_items": inventory_items,
+		"completed_tasks": completed_tasks, "current_task_index": current_task_index,
+		"daily_claimed_day": daily_claimed_day, "last_energy_timestamp": last_energy_timestamp
+	}
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
+	else:
+		push_error("Unable to save Mystery Merge progress.")
+
+func _load_game() -> void:
+	if not FileAccess.file_exists(save_path):
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path))
+	if not (parsed is Dictionary):
+		push_warning("Save file is invalid; starting a new case.")
+		return
+	energy = clampi(int(parsed.get("energy", energy)), 0, max_energy)
+	coins = maxi(0, int(parsed.get("coins", coins)))
+	gems = maxi(0, int(parsed.get("gems", gems)))
+	current_case = str(parsed.get("current_case", current_case))
+	current_location = str(parsed.get("current_location", current_location))
+	case_progress = clampf(float(parsed.get("case_progress", case_progress)), 0.0, 1.0)
+	sound_enabled = bool(parsed.get("sound_enabled", sound_enabled))
+	music_enabled = bool(parsed.get("music_enabled", music_enabled))
+	notifications_enabled = bool(parsed.get("notifications_enabled", notifications_enabled))
+	current_task_index = clampi(int(parsed.get("current_task_index", 0)), 0, task_catalog.size())
+	daily_claimed_day = int(parsed.get("daily_claimed_day", -1))
+	last_energy_timestamp = int(parsed.get("last_energy_timestamp", 0))
+	completed_tasks.clear()
+	for task_id in parsed.get("completed_tasks", []):
+		completed_tasks.append(str(task_id))
+	var saved_board: Array = parsed.get("board_items", [])
+	if saved_board.size() == BOARD_SIZE:
+		board_items = saved_board.duplicate()
+	var saved_inventory: Array = parsed.get("inventory_items", [])
+	if saved_inventory.size() == INVENTORY_SIZE:
+		inventory_items = saved_inventory.duplicate()
+	save_loaded.emit()
+
+func reset_local_save() -> void:
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	energy = 72
+	coins = 12450
+	gems = 38
+	board_items.clear()
+	inventory_items.clear()
+	completed_tasks.clear()
+	current_task_index = 0
+	daily_claimed_day = -1
+	last_energy_timestamp = int(Time.get_unix_time_from_system())
+	initialize_board()
+	_save_game()
+	economy_changed.emit()
+	progress_changed.emit()
