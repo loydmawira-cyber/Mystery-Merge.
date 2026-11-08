@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "items": [
+    {"id":"torn_photo","display_name":"Torn Photograph","description":"A photograph in two pieces.","level":1,"chain_id":"photograph","sell_value":5,"merge_result_id":"reassembled_photo"},
+    {"id":"reassembled_photo","display_name":"Reassembled Photograph","description":"The pieces fit together.","level":2,"chain_id":"photograph","sell_value":10,"merge_result_id":"enlarged_photo"},
+    {"id":"enlarged_photo","display_name":"Enlarged Photograph","description":"A detail is visible near the window.","level":3,"chain_id":"photograph","sell_value":20,"merge_result_id":"annotated_photo"},
+    {"id":"annotated_photo","display_name":"Annotated Photograph","description":"A marked clue from the mansion.","level":4,"chain_id":"photograph","sell_value":40,"merge_result_id":""},
+    {"id":"old_key","display_name":"Old Key","description":"A tarnished brass key.","level":1,"chain_id":"key","sell_value":5,"merge_result_id":"cleaned_key"},
+    {"id":"cleaned_key","display_name":"Cleaned Key","description":"Its markings are now visible.","level":2,"chain_id":"key","sell_value":10,"merge_result_id":"engraved_key"},
+    {"id":"engraved_key","display_name":"Engraved Key","description":"A family crest is engraved on it.","level":3,"chain_id":"key","sell_value":20,"merge_result_id":"mansion_key"},
+    {"id":"mansion_key","display_name":"Mansion Key","description":"A key to a locked room.","level":4,"chain_id":"key","sell_value":40,"merge_result_id":""}
+  ]
+}
