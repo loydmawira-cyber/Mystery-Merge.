@@ -381,4 +381,4 @@ func _on_energy_tick() -> void:
 
 func _today_key() -> int:
 	var date := Time.get_datetime_dict_from_system()
-	return int(date.year) * 1000 + int(date.day_of_year)
+	return int(date.year) * 1000 + int(date.month) * 32 + int(date.day)
