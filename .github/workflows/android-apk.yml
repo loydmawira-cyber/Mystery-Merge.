@@ -56,6 +56,13 @@ jobs:
           export/android/java_sdk_path = "$JAVA_HOME"
           EOF
 
+      - name: Create temporary Android debug keystore
+        run: |
+          keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000 -keyalg RSA -keysize 2048
+          sed -i "s|keystore/debug=\"\"|keystore/debug=\"$GITHUB_WORKSPACE/debug.keystore\"|" export_presets.cfg
+          sed -i "s|keystore/debug_user=\"\"|keystore/debug_user=\"androiddebugkey\"|" export_presets.cfg
+          sed -i "s|keystore/debug_password=\"\"|keystore/debug_password=\"android\"|" export_presets.cfg
+
       - name: Import project
         run: godot --headless --editor --path . --quit
 
