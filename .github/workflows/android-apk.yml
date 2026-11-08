@@ -50,6 +50,18 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
 
+      - name: Generate app icon and Android launcher artwork
+        run: |
+          python3 -m pip install --disable-pip-version-check cairosvg
+          python3 - <<'PY'
+          import cairosvg
+          cairosvg.svg2png(url="assets/app_icon.svg", write_to="assets/app_icon.png", output_width=192, output_height=192)
+          cairosvg.svg2png(url="assets/app_icon.svg", write_to="assets/adaptive_foreground.png", output_width=432, output_height=432)
+          cairosvg.svg2png(url="assets/adaptive_background.svg", write_to="assets/adaptive_background.png", output_width=432, output_height=432)
+          cairosvg.svg2png(url="assets/launcher_splash.svg", write_to="assets/launcher_splash.png", output_width=720, output_height=1280)
+          print("Generated 192px launcher icon, 432px adaptive layers and 720x1280 launch artwork.")
+          PY
+
       - name: Configure Godot Android SDK paths and debug keystore
         run: |
           mkdir -p ~/.config/godot ~/.android build
