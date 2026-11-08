@@ -5,10 +5,16 @@ var feedback: Label
 var wallet: Label
 
 func _ready() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color("091923")
+	var bg := TextureRect.new()
+	bg.texture = load("res://assets/detective_shop_bg.svg")
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+	var shade := ColorRect.new()
+	shade.color = Color(0.01, 0.035, 0.055, 0.38)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(shade)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 18)
@@ -33,16 +39,16 @@ func _ready() -> void:
 	wallet = _label("", 11, UI.CREAM)
 	root.add_child(wallet)
 	var hero := PanelContainer.new()
-	hero.add_theme_stylebox_override("panel", UI.panel(Color("173744"), UI.GOLD, 20))
+	hero.add_theme_stylebox_override("panel", UI.panel(Color("e2c99a"), UI.GOLD, 20))
 	root.add_child(hero)
 	var hero_col := VBoxContainer.new()
 	hero_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	hero_col.add_theme_constant_override("separation", 9)
 	hero.add_child(hero_col)
-	hero_col.add_child(_center_label("✦  FIRST CASE SUPPLY KIT  ✦", 12, UI.GOLD))
-	hero_col.add_child(_center_label("A BRIGHTER BEGINNING", 10, UI.MUTED))
-	hero_col.add_child(_center_label("300 ◆   ·   500 ⚡   ·   +1 BAG SLOT", 16, UI.CREAM))
-	hero_col.add_child(_center_label("A generous starter bundle for a new detective.", 11, UI.PAPER))
+	hero_col.add_child(_center_label("✦  FIRST CASE SUPPLY KIT  ✦", 13, Color("7e5525")))
+	hero_col.add_child(_center_label("A BRIGHTER BEGINNING", 11, Color("80643c")))
+	hero_col.add_child(_center_label("300 ◆   ·   500 ⚡   ·   +1 BAG SLOT", 16, Color("302319")))
+	hero_col.add_child(_center_label("A generous starter bundle for a new detective.", 11, Color("4c3926")))
 	var starter := _button("STARTER PACK  ·  COMING SOON", UI.GOLD, UI.INK)
 	starter.disabled = true
 	hero_col.add_child(starter)
