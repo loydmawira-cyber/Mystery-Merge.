@@ -138,6 +138,10 @@ func transfer_item(from_zone: String, from_index: int, to_zone: String, to_index
 		return {"ok": true, "kind": "swap", "item_id": source_item, "message": "Inventory rearranged."}
 	return {"ok": false, "message": "Those clues do not fit together."}
 func generate_from_generator(generator_id: String) -> Dictionary:
+	if generator_id == "garden_room" and current_task_index < 2:
+		return {"ok": false, "message": "Garden Room unlocks after the first two evidence objectives."}
+	if generator_id == "locked_attic" and current_task_index < 4:
+		return {"ok": false, "message": "The attic key is still missing. Complete four evidence objectives first."}
 	if not generator_catalog.has(generator_id):
 		return {"ok": false, "message": "That search location is unavailable."}
 	var empty_slots: Array[int] = []
