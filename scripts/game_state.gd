@@ -298,7 +298,8 @@ func _apply_offline_energy() -> void:
 		economy_changed.emit()
 
 func _save_game() -> void:
-	last_energy_timestamp = int(Time.get_unix_time_from_system())
+	if last_energy_timestamp <= 0:
+		last_energy_timestamp = int(Time.get_unix_time_from_system())
 	var data := {
 		"version": 1, "energy": energy, "coins": coins, "gems": gems,
 		"current_case": current_case, "current_location": current_location,
