@@ -19,6 +19,7 @@ var item_catalog: Dictionary = {}
 var generator_catalog: Dictionary = {}
 var board_items: Array = []
 var inventory_items: Array = []
+var board_initialized: bool = false
 var rng := RandomNumberGenerator.new()
 signal economy_changed
 signal progress_changed
@@ -46,6 +47,8 @@ func _read_json(path: String) -> Dictionary:
 	push_error("Invalid JSON object in: " + path)
 	return {}
 func initialize_board() -> void:
+	if board_initialized:
+		return
 	if board_items.size() != BOARD_SIZE:
 		board_items.resize(BOARD_SIZE)
 		for index in range(BOARD_SIZE):
@@ -65,6 +68,7 @@ func initialize_board() -> void:
 		]
 		for entry in starter_items:
 			board_items[int(entry["slot"])] = str(entry["id"])
+	board_initialized = true
 	board_changed.emit()
 func get_item(item_id: String) -> Dictionary:
 	if item_catalog.has(item_id):

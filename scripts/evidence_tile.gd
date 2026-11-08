@@ -21,6 +21,7 @@ func configure(controller: Control, slot_zone: String, index: int) -> void:
 func render_item(next_item_id: String) -> void:
 	item_id = next_item_id
 	is_selected = false
+	self_modulate = Color.WHITE
 	if item_id.is_empty():
 		text = "＋" if zone == "inventory" else ""
 		tooltip_text = "Empty space"
