@@ -256,12 +256,17 @@ func _register_task_result(item_id: String) -> void:
 			story_text = str(scene.get("text", story_text))
 			break
 	current_task_index += 1
+	case_progress = float(current_task_index) / float(maxi(1, task_catalog.size()))
+	if current_task_index >= 4:
+		current_location = "locked_attic"
+	elif current_task_index >= 2:
+		current_location = "garden_room"
 	task_completed.emit(task_id, story_text)
 	progress_changed.emit()
 	_save_game()
 
 func claim_daily_reward() -> Dictionary:
-	var day := int(Time.get_unix_time_from_system() / 86400)
+	var day := _today_key()
 	if daily_claimed_day == day:
 		return {"ok": false, "message": "Today's detective gift has already been claimed."}
 	daily_claimed_day = day
@@ -349,6 +354,12 @@ func reset_local_save() -> void:
 	inventory_items.clear()
 	completed_tasks.clear()
 	current_task_index = 0
+	current_case = "case_01"
+	current_location = "study"
+	case_progress = 0.0
+	sound_enabled = true
+	music_enabled = true
+	notifications_enabled = true
 	daily_claimed_day = -1
 	last_energy_timestamp = int(Time.get_unix_time_from_system())
 	initialize_board()
@@ -367,3 +378,7 @@ func _on_energy_tick() -> void:
 		last_energy_timestamp += gained * 120
 		economy_changed.emit()
 		_save_game()
+
+func _today_key() -> int:
+	var date := Time.get_datetime_dict_from_system()
+	return int(date.year) * 1000 + int(date.day_of_year)
