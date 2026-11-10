@@ -32,6 +32,7 @@ fun SettingsScreen(
 ) {
     val scrollState = rememberScrollState()
     var showResetDialog by remember { mutableStateOf(false) }
+    var showHowToPlay by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -48,6 +49,9 @@ fun SettingsScreen(
 
         Column(
             modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize(Alignment.Center)
+                .widthIn(max = 500.dp)
                 .weight(1f)
                 .verticalScroll(scrollState)
                 .padding(20.dp),
@@ -89,6 +93,34 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.weight(1f, fill = false).height(40.dp))
+
+            // How to Play / Detective Handbook
+            Button(
+                onClick = { showHowToPlay = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MysteryTeal,
+                    contentColor = MysteryCream
+                ),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.5.dp, MysteryGold),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("settings_how_to_play_button")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(text = "📖", fontSize = 18.sp)
+                    Text(
+                        text = "HOW TO PLAY · DETECTIVE HANDBOOK",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 13.sp,
+                        color = MysteryGold
+                    )
+                }
+            }
 
             // Reset Game Data
             Button(
@@ -172,6 +204,10 @@ fun SettingsScreen(
             containerColor = MysteryNavyLight,
             shape = RoundedCornerShape(16.dp)
         )
+    }
+
+    if (showHowToPlay) {
+        HowToPlayDialog(onDismiss = { showHowToPlay = false })
     }
 }
 

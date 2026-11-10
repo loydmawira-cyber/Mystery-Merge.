@@ -56,6 +56,9 @@ fun CaseFilesScreen(
 
         Column(
             modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize(Alignment.Center)
+                .widthIn(max = 500.dp)
                 .weight(1f)
                 .verticalScroll(scrollState)
                 .padding(14.dp),

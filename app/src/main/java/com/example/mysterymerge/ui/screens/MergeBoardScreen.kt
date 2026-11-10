@@ -9,7 +9,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -55,6 +57,7 @@ fun MergeBoardScreen(
     modifier: Modifier = Modifier
 ) {
     var showGeneratorDialog by remember { mutableStateOf(false) }
+    var showHowToPlayDialog by remember { mutableStateOf(false) }
     var selectedGenerator by remember { mutableStateOf("study") }
 
     val activeCase = GameContent.caseMap[state.currentCaseId] ?: GameContent.cases.first()
@@ -104,6 +107,8 @@ fun MergeBoardScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
+                .widthIn(max = 480.dp)
                 .padding(horizontal = 8.dp, vertical = 2.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -116,6 +121,7 @@ fun MergeBoardScreen(
                 gems = state.gems,
                 energyTimerText = timerFormatted,
                 onSettingsClick = { onNavigate(Screen.SETTINGS) },
+                onHowToPlayClick = { showHowToPlayDialog = true },
                 onEnergyClick = { onNavigate(Screen.SHOP) },
                 onCoinsClick = { onNavigate(Screen.SHOP) },
                 onGemsClick = { onNavigate(Screen.SHOP) }
@@ -144,7 +150,7 @@ fun MergeBoardScreen(
 
                 val cellByWidth = availableWidth / GameContent.BOARD_COLUMNS
                 val cellByHeight = availableHeight / GameContent.BOARD_ROWS
-                val cellSize = minOf(cellByWidth, cellByHeight)
+                val cellSize = minOf(cellByWidth, cellByHeight).coerceIn(32.dp, 52.dp)
 
                 val boardWidth = cellSize * GameContent.BOARD_COLUMNS
                 val boardHeight = cellSize * GameContent.BOARD_ROWS
@@ -218,6 +224,7 @@ fun MergeBoardScreen(
                                 Image(
                                     painter = painterResource(id = GameContent.getItemDrawable(item.id)),
                                     contentDescription = item.displayName,
+                                    contentScale = ContentScale.Fit,
                                     modifier = Modifier.size(28.dp).clip(RoundedCornerShape(4.dp))
                                 )
                                 Column {
@@ -246,42 +253,42 @@ fun MergeBoardScreen(
                                 if (selectedZone == "board") {
                                     FilledTonalButton(
                                         onClick = { onStashItem(selectedIndex) },
-                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                         shape = RoundedCornerShape(6.dp),
                                         colors = ButtonDefaults.filledTonalButtonColors(
                                             containerColor = Color(0xFF133E4D),
                                             contentColor = MysteryCream
                                         ),
-                                        modifier = Modifier.height(26.dp)
+                                        modifier = Modifier.height(28.dp)
                                     ) {
-                                        Text("To Bag", fontSize = 9.sp)
+                                        Text("To Bag", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 } else if (selectedZone == "inventory") {
                                     FilledTonalButton(
                                         onClick = { onRetrieveItem(selectedIndex) },
-                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                         shape = RoundedCornerShape(6.dp),
                                         colors = ButtonDefaults.filledTonalButtonColors(
                                             containerColor = Color(0xFF133E4D),
                                             contentColor = MysteryCream
                                         ),
-                                        modifier = Modifier.height(26.dp)
+                                        modifier = Modifier.height(28.dp)
                                     ) {
-                                        Text("To Board", fontSize = 9.sp)
+                                        Text("To Board", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
 
                                 Button(
                                     onClick = { onSellItem(selectedZone ?: "", selectedIndex) },
-                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                     shape = RoundedCornerShape(6.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color(0xFF653B2A),
                                         contentColor = MysteryGold
                                     ),
-                                    modifier = Modifier.height(26.dp)
+                                    modifier = Modifier.height(28.dp)
                                 ) {
-                                    Text("Sell +${item.sellValue}🪙", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    Text("Sell +${item.sellValue}🪙", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -306,7 +313,7 @@ fun MergeBoardScreen(
                     shadowElevation = 6.dp,
                     modifier = Modifier
                         .width(115.dp)
-                        .height(82.dp)
+                        .height(78.dp)
                         .testTag("evidence_chest_button")
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -321,7 +328,7 @@ fun MergeBoardScreen(
                                 painter = painterResource(id = R.drawable.img_evidence_chest),
                                 contentDescription = "Evidence Chest",
                                 contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(44.dp)
+                                modifier = Modifier.size(38.dp)
                             )
                             Text(
                                 text = "Evidence Chest",
@@ -336,23 +343,24 @@ fun MergeBoardScreen(
                             )
                         }
 
-                        // Info / Search Location Picker (i)
+                        // Info / Search Location Picker (i) with dedicated touch area
                         Surface(
                             onClick = { showGeneratorDialog = true },
                             shape = CircleShape,
-                            color = Color(0xFF074554),
+                            color = Color(0xFF0C3D4A),
                             border = BorderStroke(1.dp, MysteryTealBright),
+                            shadowElevation = 4.dp,
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(4.dp)
-                                .size(18.dp)
+                                .padding(3.dp)
+                                .size(24.dp)
                                 .testTag("generator_info_button")
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
                                     text = "i",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
                                     color = MysteryCream
                                 )
                             }
@@ -369,7 +377,7 @@ fun MergeBoardScreen(
                     shadowElevation = 6.dp,
                     modifier = Modifier
                         .weight(1f)
-                        .height(82.dp)
+                        .height(78.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -383,13 +391,13 @@ fun MergeBoardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Inventory ($occupiedBagCount/8)",
+                                text = "Field Bag ($occupiedBagCount/${state.inventoryItems.size})",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MysteryGold
                             )
                             Text(
-                                text = if (feedbackText.isNotEmpty()) feedbackText else "Tap to store / retrieve",
+                                text = if (feedbackText.isNotEmpty()) feedbackText else "Tap to stash / retrieve",
                                 fontSize = 8.sp,
                                 color = MysteryPaper,
                                 maxLines = 1,
@@ -397,21 +405,24 @@ fun MergeBoardScreen(
                             )
                         }
 
-                        // Horizontal Row of 6 visible inventory slots
+                        // Horizontal Row of Inventory slots (supports all 8 slots seamlessly)
+                        val invScrollState = rememberScrollState()
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(invScrollState),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            for (i in 0 until 6) {
-                                val itemId = state.inventoryItems.getOrElse(i) { "" }
+                            for (i in 0 until state.inventoryItems.size) {
+                                val itemId = state.inventoryItems[i]
                                 val isSelected = selectedZone == "inventory" && selectedIndex == i
 
                                 InventorySlotTile(
                                     itemId = itemId,
                                     isSelected = isSelected,
                                     onClick = { onTileClick("inventory", i) },
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.size(42.dp),
                                     testTag = "inventory_slot_$i"
                                 )
                             }
@@ -500,6 +511,11 @@ fun MergeBoardScreen(
             shape = RoundedCornerShape(16.dp)
         )
     }
+
+    // Detective Handbook / How to Play Dialog
+    if (showHowToPlayDialog) {
+        HowToPlayDialog(onDismiss = { showHowToPlayDialog = false })
+    }
 }
 
 @Composable
@@ -516,18 +532,18 @@ fun DynamicCaseFolderBanner(
         shape = RoundedCornerShape(8.dp),
         color = Color(0xFFE4CFAC),
         border = BorderStroke(1.5.dp, Color(0xFF9E7542)),
-        shadowElevation = 5.dp,
+        shadowElevation = 4.dp,
         modifier = modifier
             .fillMaxWidth()
-            .height(68.dp)
+            .height(58.dp)
             .testTag("dynamic_case_folder_banner")
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = 6.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // Left: Photo of Case location with photo border
             Surface(
@@ -536,7 +552,7 @@ fun DynamicCaseFolderBanner(
                 border = BorderStroke(1.dp, Color(0xFFC7B18E)),
                 shadowElevation = 2.dp,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(48.dp)
                     .rotate(-2f)
             ) {
                 Image(
@@ -552,14 +568,12 @@ fun DynamicCaseFolderBanner(
 
             // Middle: Dynamic Case Title & Objective
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 8.dp),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "CASE 0${caseModel.number}: ${caseModel.title.uppercase()}",
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     color = Color(0xFF281C14),
                     maxLines = 1,
@@ -580,18 +594,19 @@ fun DynamicCaseFolderBanner(
                     trackColor = Color(0xFFCBB792),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
+                        .height(3.5.dp)
                         .clip(RoundedCornerShape(2.dp))
                 )
             }
 
-            // Right: Paper note with Paperclip and Magnifying Glass button
+            // Right: Paper note with folder button to open archives
             Surface(
+                onClick = onClick,
                 shape = RoundedCornerShape(6.dp),
                 color = Color(0xFFF7ECDA),
                 border = BorderStroke(1.dp, Color(0xFFC5AB85)),
                 modifier = Modifier
-                    .width(105.dp)
+                    .width(88.dp)
                     .fillMaxHeight()
             ) {
                 Row(
@@ -602,21 +617,21 @@ fun DynamicCaseFolderBanner(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Merge clues\nto uncover",
-                        fontSize = 8.sp,
+                        text = "Case Files\nArchives",
+                        fontSize = 8.5.sp,
                         color = Color(0xFF4C3625),
                         lineHeight = 10.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Bold
                     )
 
                     Surface(
                         shape = CircleShape,
                         color = Color(0xFF144D5B),
                         border = BorderStroke(1.dp, MysteryGold),
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(24.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(text = "🔍", fontSize = 12.sp)
+                            Text(text = "📁", fontSize = 11.sp)
                         }
                     }
                 }
@@ -634,7 +649,7 @@ fun BoardEvidenceTile(
     testTag: String
 ) {
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.12f else 1f,
+        targetValue = if (isSelected) 1.08f else 1f,
         label = "tile_scale"
     )
 
@@ -658,16 +673,17 @@ fun BoardEvidenceTile(
                 Image(
                     painter = painterResource(id = drawableRes),
                     contentDescription = itemId,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(2.dp)
                         .clip(RoundedCornerShape(3.dp))
                 )
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.tile_empty_recessed),
                     contentDescription = "Empty slot",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.FillBounds,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -700,9 +716,7 @@ fun InventorySlotTile(
             width = if (isSelected) 2.dp else 1.dp,
             color = if (isSelected) MysteryGold else Color(0xFF1E5260)
         ),
-        modifier = modifier
-            .aspectRatio(1f)
-            .testTag(testTag)
+        modifier = modifier.testTag(testTag)
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (itemId.isNotEmpty()) {
@@ -710,9 +724,10 @@ fun InventorySlotTile(
                 Image(
                     painter = painterResource(id = drawableRes),
                     contentDescription = itemId,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(2.dp)
                         .clip(RoundedCornerShape(5.dp))
                 )
             } else {

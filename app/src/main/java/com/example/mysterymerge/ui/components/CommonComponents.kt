@@ -33,6 +33,7 @@ fun TopBarWallet(
     gems: Int,
     energyTimerText: String = "02:16",
     onSettingsClick: () -> Unit,
+    onHowToPlayClick: () -> Unit = {},
     onEnergyClick: () -> Unit = {},
     onCoinsClick: () -> Unit = {},
     onGemsClick: () -> Unit = {},
@@ -41,120 +42,149 @@ fun TopBarWallet(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Tagline at the very top right
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Text(
-                text = "Small clues. Bigger truths.",
-                fontSize = 11.sp,
-                fontStyle = FontStyle.Italic,
-                color = MysteryGoldDark,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
+        // Row 1: Logo & Tagline + Action Buttons (Help '?' and Settings '⚙')
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Brand Logo
+            // Brand Logo & Detective Tagline
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = Color.Transparent,
-                    border = BorderStroke(2.dp, MysteryGold),
-                    modifier = Modifier.size(28.dp)
+                    color = Color(0xFF07212B),
+                    border = BorderStroke(1.5.dp, MysteryGold),
+                    modifier = Modifier.size(30.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = "🔍",
-                            fontSize = 14.sp
+                            fontSize = 15.sp
                         )
                     }
                 }
                 Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "MYSTERY ",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MysteryGold,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "MERGE",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MysteryCream,
+                            letterSpacing = 1.sp
+                        )
+                    }
                     Text(
-                        text = "MYSTERY",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MysteryGold,
-                        letterSpacing = 1.sp,
-                        lineHeight = 15.sp
-                    )
-                    Text(
-                        text = "MERGE",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MysteryGold,
-                        letterSpacing = 1.5.sp,
-                        lineHeight = 14.sp
+                        text = "Small clues. Bigger truths.",
+                        fontSize = 9.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = MysteryGoldDark,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
 
-            // Resource Counters
+            // Action Buttons: Help (?) & Settings (⚙)
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Energy with timer
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    ResourcePill(
-                        symbol = "⚡",
-                        symbolColor = Color(0xFF38B6FF),
-                        value = "$energy/$maxEnergy",
-                        onClick = onEnergyClick,
-                        testTag = "wallet_energy"
-                    )
-                    Text(
-                        text = "⏱ $energyTimerText",
-                        fontSize = 8.sp,
-                        color = MysteryMuted,
-                        fontWeight = FontWeight.Bold
-                    )
+                // How to Play button
+                Surface(
+                    onClick = onHowToPlayClick,
+                    shape = CircleShape,
+                    color = Color(0xFF0B242E),
+                    border = BorderStroke(1.2.dp, MysteryGold),
+                    shadowElevation = 3.dp,
+                    modifier = Modifier
+                        .size(34.dp)
+                        .testTag("top_how_to_play_button")
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "?",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MysteryGold
+                        )
+                    }
                 }
-
-                // Coins
-                ResourcePill(
-                    symbol = "🪙",
-                    symbolColor = MysteryGold,
-                    value = formatCommas(coins),
-                    onClick = onCoinsClick,
-                    testTag = "wallet_coins"
-                )
-
-                // Gems
-                ResourcePill(
-                    symbol = "💎",
-                    symbolColor = MysteryGemPurple,
-                    value = "$gems",
-                    onClick = onGemsClick,
-                    testTag = "wallet_gems"
-                )
 
                 // Settings Gear
                 Surface(
                     onClick = onSettingsClick,
                     shape = CircleShape,
-                    color = Color(0xFF0D2530),
-                    border = BorderStroke(1.dp, MysteryTealBright.copy(alpha = 0.7f)),
+                    color = Color(0xFF0B242E),
+                    border = BorderStroke(1.2.dp, MysteryTealBright),
+                    shadowElevation = 3.dp,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(34.dp)
                         .testTag("top_settings_button")
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(text = "⚙", fontSize = 16.sp, color = MysteryCream)
+                        Text(
+                            text = "⚙",
+                            fontSize = 16.sp,
+                            color = MysteryCream
+                        )
                     }
                 }
+            }
+        }
+
+        // Row 2: Resource Pills (Energy, Coins, Gems)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Energy Pill with Live Countdown
+            Box(modifier = Modifier.weight(1.15f)) {
+                ResourcePill(
+                    symbol = "⚡",
+                    symbolColor = Color(0xFF38B6FF),
+                    value = "$energy/$maxEnergy",
+                    subtitle = "⏱ $energyTimerText",
+                    onClick = onEnergyClick,
+                    testTag = "wallet_energy",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // Coins Pill
+            Box(modifier = Modifier.weight(1f)) {
+                ResourcePill(
+                    symbol = "🪙",
+                    symbolColor = MysteryGold,
+                    value = formatCommas(coins),
+                    onClick = onCoinsClick,
+                    testTag = "wallet_coins",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // Gems Pill
+            Box(modifier = Modifier.weight(0.85f)) {
+                ResourcePill(
+                    symbol = "💎",
+                    symbolColor = MysteryGemPurple,
+                    value = "$gems",
+                    onClick = onGemsClick,
+                    testTag = "wallet_gems",
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
@@ -165,38 +195,58 @@ fun ResourcePill(
     symbol: String,
     symbolColor: Color,
     value: String,
+    subtitle: String? = null,
     onClick: () -> Unit,
     testTag: String,
     modifier: Modifier = Modifier
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF09202A),
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFF081D26),
         border = BorderStroke(1.2.dp, Color(0xFF225B6A)),
+        shadowElevation = 2.dp,
         modifier = modifier.testTag(testTag)
     ) {
         Row(
-            modifier = Modifier.padding(start = 5.dp, end = 2.dp, top = 2.dp, bottom = 2.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp)
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = symbol, fontSize = 11.sp, color = symbolColor)
-            Text(
-                text = value,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MysteryCream
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(text = symbol, fontSize = 12.sp, color = symbolColor)
+                Column {
+                    Text(
+                        text = value,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MysteryCream,
+                        maxLines = 1
+                    )
+                    if (subtitle != null) {
+                        Text(
+                            text = subtitle,
+                            fontSize = 8.sp,
+                            color = MysteryMuted,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
             // Plus icon inside pill
             Surface(
                 shape = CircleShape,
                 color = Color(0xFF144755),
                 border = BorderStroke(0.8.dp, Color(0xFF3DA3B8)),
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(17.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(text = "+", fontSize = 10.sp, fontWeight = FontWeight.Black, color = MysteryCream)
+                    Text(text = "+", fontSize = 11.sp, fontWeight = FontWeight.Black, color = MysteryCream)
                 }
             }
         }
@@ -246,12 +296,14 @@ fun BottomNavBar(
     Surface(
         color = Color(0xFF081820),
         border = BorderStroke(1.dp, Color(0xFF1A3B49)),
+        shadowElevation = 8.dp,
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .navigationBarsPadding() // Ensures buttons are never blocked by Android system navigation / home bar
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -260,7 +312,8 @@ fun BottomNavBar(
                 label = "Board",
                 isSelected = currentScreen == Screen.BOARD,
                 onClick = { onNavigate(Screen.BOARD) },
-                testTag = "nav_board_button"
+                testTag = "nav_board_button",
+                modifier = Modifier.weight(1f)
             )
             NavButton(
                 icon = "📁",
@@ -268,14 +321,16 @@ fun BottomNavBar(
                 isSelected = currentScreen == Screen.CASES,
                 hasNotification = hasCaseNotifications,
                 onClick = { onNavigate(Screen.CASES) },
-                testTag = "nav_cases_button"
+                testTag = "nav_cases_button",
+                modifier = Modifier.weight(1f)
             )
             NavButton(
                 icon = "🏪",
                 label = "Shop",
                 isSelected = currentScreen == Screen.SHOP,
                 onClick = { onNavigate(Screen.SHOP) },
-                testTag = "nav_shop_button"
+                testTag = "nav_shop_button",
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -288,17 +343,18 @@ fun NavButton(
     isSelected: Boolean,
     onClick: () -> Unit,
     testTag: String,
-    hasNotification: Boolean = false
+    hasNotification: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         color = if (isSelected) Color(0xFF102F3A) else Color.Transparent,
         border = if (isSelected) BorderStroke(1.5.dp, MysteryGold) else null,
-        modifier = Modifier
+        modifier = modifier
             .testTag(testTag)
-            .width(100.dp)
-            .height(52.dp)
+            .padding(horizontal = 4.dp)
+            .height(50.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
