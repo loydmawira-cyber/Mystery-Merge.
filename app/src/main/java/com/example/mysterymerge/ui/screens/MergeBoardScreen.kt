@@ -454,11 +454,7 @@ fun MergeBoardScreen(
                     )
 
                     for (gen in GameContent.generators) {
-                        val isUnlocked = when (gen.id) {
-                            "garden_room" -> activeTaskIndex >= 2 || state.completedCases.isNotEmpty()
-                            "locked_attic" -> activeTaskIndex >= 4 || state.completedCases.isNotEmpty()
-                            else -> true
-                        }
+                        val isUnlocked = GameContent.isGeneratorUnlocked(gen.id, state)
                         val isSelected = selectedGenerator == gen.id
 
                         Surface(
@@ -572,7 +568,7 @@ fun DynamicCaseFolderBanner(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "CASE 0${caseModel.number}: ${caseModel.title.uppercase()}",
+                    text = "${GameContent.caseLabel(caseModel.number)}: ${caseModel.title.uppercase()}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     color = Color(0xFF281C14),

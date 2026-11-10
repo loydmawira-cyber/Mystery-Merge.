@@ -105,7 +105,7 @@ fun CaseFilesScreen(
                 for (c in GameContent.cases) {
                     val isSelected = selectedViewCaseId == c.id
                     val isCompleted = state.completedCases.contains(c.id)
-                    val isUnlocked = c.number == 1 || state.completedCases.contains("case_0${c.number - 1}")
+                    val isUnlocked = GameContent.isCaseUnlocked(c, state.completedCases)
                     val isActive = state.currentCaseId == c.id
 
                     Surface(
@@ -181,7 +181,7 @@ fun CaseFilesScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "CASE 0${viewedCase.number}",
+                                text = GameContent.caseLabel(viewedCase.number),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF7E5525)
@@ -240,7 +240,7 @@ fun CaseFilesScreen(
                     }
 
                     // Investigate Button
-                    val isViewedUnlocked = viewedCase.number == 1 || state.completedCases.contains("case_0${viewedCase.number - 1}")
+                    val isViewedUnlocked = GameContent.isCaseUnlocked(viewedCase, state.completedCases)
                     val isCurrentlyActive = state.currentCaseId == viewedCase.id
 
                     Button(
@@ -264,7 +264,7 @@ fun CaseFilesScreen(
                             .testTag("investigate_case_button")
                     ) {
                         Text(
-                            text = if (isCurrentlyActive) "CONTINUE INVESTIGATION ›" else if (isViewedUnlocked) "OPEN THIS CASE ›" else "LOCKED (Complete Case 0${viewedCase.number - 1})",
+                            text = if (isCurrentlyActive) "CONTINUE INVESTIGATION ›" else if (isViewedUnlocked) "OPEN THIS CASE ›" else "LOCKED (Complete ${GameContent.caseLabel(viewedCase.number - 1)})",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )

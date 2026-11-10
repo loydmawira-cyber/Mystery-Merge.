@@ -380,13 +380,18 @@ private fun CasesTab() {
 
         InstructionCard(
             stepNumber = "📁",
-            title = "5 Complete Detective Cases",
-            body = "Tap the 'Cases' tab in the bottom bar to view the Manor Case Archives. Complete all 5 objectives in a case to earn 500–2,000 Coins and unlock the next mystery:\n\n" +
+            title = "10 Detective Cases",
+            body = "Tap the 'Cases' tab in the bottom bar to view the Manor Case Archives. Complete all 5 objectives in a case to earn bonus Coins and Gems and unlock the next mystery. The clue you hand in is used up, and the next case opens automatically:\n\n" +
                     "• Case 01: The Missing Locket\n" +
                     "• Case 02: The Clock Tower Cipher\n" +
                     "• Case 03: The Rose Garden Mystery\n" +
                     "• Case 04: The Alchemist's Secret\n" +
-                    "• Case 05: The Midnight Masquerade"
+                    "• Case 05: The Midnight Masquerade\n" +
+                    "• Case 06: The Silent Conservatory\n" +
+                    "• Case 07: The Sealed Letter\n" +
+                    "• Case 08: The Violinist's Last Note\n" +
+                    "• Case 09: The Cellar Beneath the Chapel\n" +
+                    "• Case 10: The Heir's Return"
         )
     }
 }

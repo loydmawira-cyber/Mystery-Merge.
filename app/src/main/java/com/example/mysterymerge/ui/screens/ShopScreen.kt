@@ -27,6 +27,8 @@ import com.example.mysterymerge.ui.theme.*
 fun ShopScreen(
     state: GameSaveState,
     feedbackText: String,
+    dailyClaimed: Boolean,
+    onClaimDaily: () -> Unit,
     onPurchaseEnergyPack: (cost: Int, amount: Int) -> Unit,
     onClaimTestAdReward: () -> Unit,
     onNavigate: (Screen) -> Unit,
@@ -191,6 +193,49 @@ fun ShopScreen(
                     modifier = Modifier.weight(1f),
                     testTag = "buy_energy_pack_75"
                 )
+            }
+
+            // Daily Detective Gift
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFF2B2A1A),
+                border = BorderStroke(1.5.dp, MysteryGoldDark),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "DAILY DETECTIVE GIFT",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MysteryGold
+                    )
+                    Text(
+                        text = "Free supplies once per day: +100 coins and +10 energy.",
+                        fontSize = 11.sp,
+                        color = MysteryCream.copy(alpha = 0.8f)
+                    )
+                    Button(
+                        onClick = onClaimDaily,
+                        enabled = !dailyClaimed,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MysteryGoldDark,
+                            contentColor = MysteryCream
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("shop_claim_daily_button")
+                    ) {
+                        Text(
+                            text = if (dailyClaimed) "CLAIMED TODAY" else "CLAIM DAILY GIFT",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
 
             // Development Rewarded Ad Simulation Card

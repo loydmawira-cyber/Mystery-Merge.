@@ -193,7 +193,7 @@ fun HomeScreen(
                     )
 
                     Text(
-                        text = "CASE 0${activeCase.number}\n${activeCase.title.uppercase()}",
+                        text = "${GameContent.caseLabel(activeCase.number)}\n${activeCase.title.uppercase()}",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black,
                         color = MysteryInk,
@@ -218,7 +218,7 @@ fun HomeScreen(
                     val progressTitle = if (currentTask != null) {
                         "TASK ${state.currentTaskIndex + 1}/${activeCase.tasks.size} · ${currentTask.title.uppercase()}"
                     } else {
-                        "CASE 0${activeCase.number} COMPLETE"
+                        "${GameContent.caseLabel(activeCase.number)} COMPLETE"
                     }
 
                     Text(
