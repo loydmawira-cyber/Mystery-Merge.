@@ -30,6 +30,14 @@ Portrait-first native Android mystery merge game built with Kotlin and Jetpack C
 - **Settings**: Audio/sound, music, and notification toggles, plus confirmation dialog to reset local game data.
 - **Branding & Adaptive Launcher Icon**: Custom adaptive gold magnifying glass & confidential archive icon.
 
+## Android Build & CI/CD
+
+- **GitHub Actions Workflow** (`.github/workflows/android-apk.yml`):
+  - Automatically triggered on push to `main` / `master`, pull requests, and manual `workflow_dispatch`.
+  - Configures JDK 21 (Temurin) and Gradle 9.3.
+  - Builds the debug APK via `./gradlew assembleDebug`.
+  - Uploads `MysteryMerge-debug.apk` as a downloadable GitHub Actions artifact (retained 30 days).
+
 ## Architecture
 
 - **Language**: Kotlin 2.2+
