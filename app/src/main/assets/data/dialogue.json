@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "scenes": [
+    {
+      "id": "scene_midnight_photo",
+      "text": "Nora turns the photograph toward the lamp. The timestamp is just after midnight — hours after everyone claimed the house was asleep."
+    },
+    {
+      "id": "scene_hidden_room",
+      "text": "The brass key carries the Cole family crest. It belongs to a door that Richard insists has been locked for years."
+    },
+    {
+      "id": "scene_note",
+      "text": "The note reads: “When the clock stops, look where the music ends.” Someone left instructions for whoever found it."
+    },
+    {
+      "id": "scene_footprint",
+      "text": "The garden impression matches a narrow pair of shoes. The damp soil shows the visitor came back toward the house, not away from it."
+    },
+    {
+      "id": "scene_locket_truth",
+      "text": "Behind the attic clock, Nora finds the missing locket wrapped in blue ribbon. It was hidden to protect a secret, not stolen for money."
+    }
+  ]
+}

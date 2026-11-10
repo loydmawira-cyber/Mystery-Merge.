@@ -1,0 +1,8 @@
+{
+  "name": "Mystery Merge",
+  "description": "Portrait mystery evidence merge game. Uncover clues, restore evidence, and solve the missing locket case.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

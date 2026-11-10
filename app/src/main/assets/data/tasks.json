@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "tasks": [
+    {"id":"task_photo","case_id":"case_01","title":"Reconstruct the photograph","required_items":["reassembled_photo"],"coin_reward":80,"gem_reward":0,"story_reward":"scene_midnight_photo"},
+    {"id":"task_key","case_id":"case_01","title":"Identify the old key","required_items":["engraved_key"],"coin_reward":90,"gem_reward":1,"story_reward":"scene_hidden_room"},
+    {"id":"task_note","case_id":"case_01","title":"Decode the hidden note","required_items":["decoded_note"],"coin_reward":100,"gem_reward":1,"story_reward":"scene_note"},
+    {"id":"task_footprint","case_id":"case_01","title":"Match the garden footprint","required_items":["matching_footprint"],"coin_reward":110,"gem_reward":1,"story_reward":"scene_footprint"},
+    {"id":"task_locket","case_id":"case_01","title":"Find the missing locket","required_items":["missing_locket"],"coin_reward":120,"gem_reward":5,"story_reward":"scene_locket_truth"}
+  ]
+}
