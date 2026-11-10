@@ -4,7 +4,7 @@ import android.content.Context
 import com.example.mysterymerge.model.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +39,10 @@ data class ActionResult(
 
 class GameStateRepository(private val context: Context) {
 
+    private companion object {
+        const val ENERGY_INTERVAL_SECONDS = 120
+    }
+
     private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = false
@@ -48,70 +52,56 @@ class GameStateRepository(private val context: Context) {
         File(context.filesDir, "mystery_merge_save.json")
     }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + Job())
+    // Main dispatcher: the ticker and every player action now run on one thread, so a stale
+    // copy of the state can never overwrite a merge made a moment earlier.
+    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
     private val _state = MutableStateFlow(createInitialState())
     val state: StateFlow<GameSaveState> = _state.asStateFlow()
 
-    private val _storyEvents = MutableSharedFlow<StoryEvent>(extraBufferCapacity = 1)
+    private val _storyEvents = MutableSharedFlow<StoryEvent>(extraBufferCapacity = 16)
     val storyEvents: SharedFlow<StoryEvent> = _storyEvents.asSharedFlow()
 
     // Live countdown timer in seconds until next energy point (0..120)
-    private val _secondsUntilNextEnergy = MutableStateFlow(120)
+    private val _secondsUntilNextEnergy = MutableStateFlow(ENERGY_INTERVAL_SECONDS)
     val secondsUntilNextEnergy: StateFlow<Int> = _secondsUntilNextEnergy.asStateFlow()
 
-    private var selectedSourceZone: String? = null
-    private var selectedSourceIndex: Int = -1
+    private val _selection = MutableStateFlow<Pair<String, Int>?>(null)
+    val selection: StateFlow<Pair<String, Int>?> = _selection.asStateFlow()
 
     init {
         loadGame()
-        applyOfflineEnergy()
+        syncEnergy()
         startLiveEnergyTicker()
     }
 
     private fun createInitialState(): GameSaveState {
         val board = MutableList(GameContent.BOARD_SIZE) { "" }
+        // Level-1 clues only: pairs and quads that teach merging without skipping the cases.
         val starterItems = listOf(
-            0 to "folded_note", 1 to "opened_note", 2 to "torn_photo", 3 to "torn_photo",
-            4 to "old_key", 5 to "dust_sample", 6 to "torn_score",
-            7 to "wax_fragment", 8 to "old_key", 9 to "decoded_note", 10 to "empty_chain",
-            11 to "folded_note", 12 to "restored_score", 13 to "torn_photo",
-            14 to "annotated_photo", 15 to "dried_bloom", 16 to "sifted_dust", 17 to "dried_bloom",
-            18 to "garden_impression", 19 to "reassembled_photo", 20 to "midnight_melody",
-            21 to "wax_fragment", 22 to "folded_note", 23 to "opened_note", 24 to "dust_sample",
-            25 to "matching_footprint", 26 to "embroidered_ribbon", 27 to "old_key",
-            28 to "attic_fiber", 29 to "restored_score", 30 to "garden_impression", 31 to "blue_ribbon",
-            32 to "reassembled_photo", 33 to "cleaned_key", 34 to "locket_clasp",
-            35 to "annotated_photo", 36 to "pressed_bloom", 37 to "torn_photo", 38 to "reassembled_photo",
-            39 to "sifted_dust", 40 to "footprint_trace", 41 to "family_seal",
-            42 to "folded_note", 43 to "cleaned_key", 44 to "cleaned_key", 45 to "matching_footprint",
-            46 to "missing_locket", 47 to "decoded_note", 48 to "opened_note"
+            "torn_photo", "torn_photo", "torn_photo",
+            "old_key", "old_key", "old_key",
+            "folded_note", "folded_note", "folded_note", "folded_note",
+            "dust_sample", "dust_sample",
+            "footprint_trace", "footprint_trace",
+            "empty_chain", "empty_chain",
+            "blue_ribbon", "blue_ribbon"
         )
-        for ((slot, id) in starterItems) {
-            if (slot in board.indices) {
-                board[slot] = id
-            }
+        // Spread them over the top rows, leaving gaps so the board feels like a workspace.
+        val starterSlots = listOf(0, 1, 2, 4, 5, 7, 8, 9, 10, 14, 15, 17, 21, 22, 24, 28, 29, 31)
+        for ((k, id) in starterItems.withIndex()) {
+            board[starterSlots[k]] = id
         }
         val inventory = MutableList(GameContent.INVENTORY_SIZE) { "" }
-        val starterInventory = listOf(
-            0 to "old_key",
-            1 to "opened_note",
-            2 to "locket_clasp",
-            3 to "annotated_photo",
-            4 to "footprint_trace"
-        )
-        for ((slot, id) in starterInventory) {
-            if (slot in inventory.indices) {
-                inventory[slot] = id
-            }
-        }
+        inventory[0] = "empty_chain"
+        inventory[1] = "footprint_trace"
 
         return GameSaveState(
             version = 2,
-            energy = 72,
+            energy = 100,
             maxEnergy = 100,
-            coins = 12450,
-            gems = 38,
+            coins = 500,
+            gems = 10,
             currentCaseId = "case_01",
             currentLocation = "study",
             caseProgress = 0.0f,
@@ -136,29 +126,33 @@ class GameStateRepository(private val context: Context) {
         try {
             val content = saveFile.readText()
             val loaded = json.decodeFromString<GameSaveState>(content)
-            if (loaded.version < 2 || loaded.boardItems.count { it.isNotEmpty() } < 10) {
+            if (loaded.version < 2) {
+                // Old format only: keep wallet, start the board over.
                 val fresh = createInitialState().copy(
-                    coins = loaded.coins.coerceAtLeast(12450),
-                    gems = loaded.gems.coerceAtLeast(38),
-                    energy = loaded.energy.coerceAtLeast(72)
+                    coins = loaded.coins,
+                    gems = loaded.gems
                 )
                 _state.value = fresh
                 saveGame(fresh)
                 return
             }
+            val knownItem: (String) -> String = { id -> if (id.isEmpty() || GameContent.itemMap.containsKey(id)) id else "" }
             val board = if (loaded.boardItems.size == GameContent.BOARD_SIZE) {
-                loaded.boardItems
+                loaded.boardItems.map(knownItem)
             } else {
-                createInitialState().boardItems
+                // Resize instead of discarding: keep what fits.
+                List(GameContent.BOARD_SIZE) { loaded.boardItems.getOrElse(it) { "" } }.map(knownItem)
             }
             val inventory = if (loaded.inventoryItems.size == GameContent.INVENTORY_SIZE) {
-                loaded.inventoryItems
+                loaded.inventoryItems.map(knownItem)
             } else {
-                createInitialState().inventoryItems
+                List(GameContent.INVENTORY_SIZE) { loaded.inventoryItems.getOrElse(it) { "" } }.map(knownItem)
             }
+            val caseId = if (GameContent.caseMap.containsKey(loaded.currentCaseId)) loaded.currentCaseId else "case_01"
             _state.value = loaded.copy(
                 boardItems = board,
                 inventoryItems = inventory,
+                currentCaseId = caseId,
                 lastEnergyTimestamp = if (loaded.lastEnergyTimestamp <= 0L) {
                     System.currentTimeMillis() / 1000L
                 } else {
@@ -179,64 +173,42 @@ class GameStateRepository(private val context: Context) {
         } catch (_: Exception) {}
     }
 
-    private fun applyOfflineEnergy() {
+    private fun syncEnergy() {
         val curr = _state.value
-        val now = System.currentTimeMillis() / 1000L
-        if (curr.lastEnergyTimestamp <= 0L) {
-            _state.value = curr.copy(lastEnergyTimestamp = now)
-            saveGame()
+        if (curr.energy >= curr.maxEnergy) {
+            _secondsUntilNextEnergy.value = ENERGY_INTERVAL_SECONDS
             return
         }
-        val diff = (now - curr.lastEnergyTimestamp).coerceAtLeast(0L)
-        val gained = (diff / 120L).toInt().coerceAtMost(curr.maxEnergy - curr.energy)
-        val remainder = (diff % 120L).toInt()
-        _secondsUntilNextEnergy.value = (120 - remainder).coerceIn(1, 120)
-
+        val now = System.currentTimeMillis() / 1000L
+        val elapsed = (now - curr.lastEnergyTimestamp).coerceAtLeast(0L)
+        val gained = (elapsed / ENERGY_INTERVAL_SECONDS).toInt().coerceAtMost(curr.maxEnergy - curr.energy)
         if (gained > 0) {
+            val newEnergy = curr.energy + gained
             val updated = curr.copy(
-                energy = (curr.energy + gained).coerceAtMost(curr.maxEnergy),
-                lastEnergyTimestamp = curr.lastEnergyTimestamp + (gained * 120L)
+                energy = newEnergy,
+                lastEnergyTimestamp = if (newEnergy >= curr.maxEnergy) now else curr.lastEnergyTimestamp + gained * ENERGY_INTERVAL_SECONDS
             )
             _state.value = updated
             saveGame(updated)
         }
+        val st = _state.value
+        val remainder = ((now - st.lastEnergyTimestamp).coerceAtLeast(0L) % ENERGY_INTERVAL_SECONDS).toInt()
+        _secondsUntilNextEnergy.value = (ENERGY_INTERVAL_SECONDS - remainder).coerceIn(1, ENERGY_INTERVAL_SECONDS)
     }
 
     private fun startLiveEnergyTicker() {
         coroutineScope.launch {
             while (isActive) {
-                delay(1000L) // Real 1-second clock tick
-                val curr = _state.value
-                if (curr.energy >= curr.maxEnergy) {
-                    _secondsUntilNextEnergy.value = 120
-                    _state.value = curr.copy(lastEnergyTimestamp = System.currentTimeMillis() / 1000L)
-                    continue
-                }
-
-                val secLeft = _secondsUntilNextEnergy.value - 1
-                if (secLeft <= 0) {
-                    _secondsUntilNextEnergy.value = 120
-                    val updated = curr.copy(
-                        energy = (curr.energy + 1).coerceAtMost(curr.maxEnergy),
-                        lastEnergyTimestamp = System.currentTimeMillis() / 1000L
-                    )
-                    _state.value = updated
-                    saveGame(updated)
-                } else {
-                    _secondsUntilNextEnergy.value = secLeft
-                }
+                syncEnergy()
+                delay(1000L)
             }
         }
     }
 
-    fun getSelection(): Pair<String, Int>? {
-        val zone = selectedSourceZone ?: return null
-        return zone to selectedSourceIndex
-    }
+    fun getSelection(): Pair<String, Int>? = _selection.value
 
     fun clearSelection() {
-        selectedSourceZone = null
-        selectedSourceIndex = -1
+        _selection.value = null
     }
 
     fun handleTileClick(zone: String, index: Int): ActionResult {
@@ -247,15 +219,15 @@ class GameStateRepository(private val context: Context) {
         }
         val targetItem = itemsList[index]
 
-        val prevZone = selectedSourceZone
-        val prevIndex = selectedSourceIndex
+        val prev = _selection.value
+        val prevZone = prev?.first
+        val prevIndex = prev?.second ?: -1
 
         if (prevZone == null) {
             if (targetItem.isEmpty()) {
                 return ActionResult(false, "That space is empty.")
             }
-            selectedSourceZone = zone
-            selectedSourceIndex = index
+            _selection.value = zone to index
             val item = GameContent.itemMap[targetItem]
             val name = item?.displayName ?: targetItem
             return ActionResult(true, "Selected $name. Choose another to merge or move.", "select", targetItem, index)
@@ -332,8 +304,9 @@ class GameStateRepository(private val context: Context) {
             }
 
             val mergedName = GameContent.itemMap[resultId]?.displayName ?: resultId
-            checkTaskCompletion(resultId)
-            return ActionResult(true, "Merged: $mergedName", "merge", resultId, toIndex)
+            val delivered = settleTasks()
+            val msg = if (delivered > 0) "Merged: $mergedName. Objective complete!" else "Merged: $mergedName"
+            return ActionResult(true, msg, "merge", resultId, toIndex)
         }
 
         if (fromZone == "inventory" && toZone == "inventory") {
@@ -380,7 +353,9 @@ class GameStateRepository(private val context: Context) {
         val emptyInv = curr.inventoryItems.indexOfFirst { it.isEmpty() }
         if (emptyInv == -1) return ActionResult(false, "Field bag is full (8/8).")
 
-        return transferItem("board", boardIndex, "inventory", emptyInv)
+        val result = transferItem("board", boardIndex, "inventory", emptyInv)
+        clearSelection()
+        return result
     }
 
     fun retrieveToBoard(inventoryIndex: Int): ActionResult {
@@ -392,16 +367,16 @@ class GameStateRepository(private val context: Context) {
         val emptyBoard = curr.boardItems.indexOfFirst { it.isEmpty() }
         if (emptyBoard == -1) return ActionResult(false, "Evidence board is full.")
 
-        return transferItem("inventory", inventoryIndex, "board", emptyBoard)
+        val result = transferItem("inventory", inventoryIndex, "board", emptyBoard)
+        clearSelection()
+        return result
     }
 
     fun generateFromLocation(generatorId: String): ActionResult {
         val curr = _state.value
-        if (generatorId == "garden_room" && curr.currentTaskIndex < 2 && !curr.completedCases.contains("case_01")) {
-            return ActionResult(false, "Garden Room unlocks after two evidence objectives.")
-        }
-        if (generatorId == "locked_attic" && curr.currentTaskIndex < 4 && !curr.completedCases.contains("case_01")) {
-            return ActionResult(false, "Locked Attic unlocks after four evidence objectives.")
+        if (!GameContent.isGeneratorUnlocked(generatorId, curr)) {
+            val needed = if (generatorId == "locked_attic") "four" else "two"
+            return ActionResult(false, "This location unlocks after $needed evidence objectives.")
         }
         val gen = GameContent.generators.find { it.id == generatorId }
             ?: return ActionResult(false, "Search location is unavailable.")
@@ -432,91 +407,134 @@ class GameStateRepository(private val context: Context) {
         val newBoard = curr.boardItems.toMutableList()
         newBoard[dest] = selectedItem
 
+        // Leaving "full" starts the regeneration clock from now, not from some old timestamp.
+        val clockStart = if (curr.energy >= curr.maxEnergy) System.currentTimeMillis() / 1000L else curr.lastEnergyTimestamp
         val updated = curr.copy(
             energy = (curr.energy - GameContent.GENERATOR_COST).coerceAtLeast(0),
             boardItems = newBoard,
-            currentLocation = generatorId
+            currentLocation = generatorId,
+            lastEnergyTimestamp = clockStart
         )
         _state.value = updated
         saveGame(updated)
+        syncEnergy()
 
         val name = GameContent.itemMap[selectedItem]?.displayName ?: selectedItem
+        settleTasks()
         return ActionResult(true, "Found: $name!", "generate", selectedItem, dest)
     }
 
     fun switchCase(caseId: String): ActionResult {
         val targetCase = GameContent.caseMap[caseId] ?: return ActionResult(false, "Case not found")
         val curr = _state.value
-        val reqPrevCase = if (targetCase.number > 1) "case_0${targetCase.number - 1}" else null
-        if (reqPrevCase != null && !curr.completedCases.contains(reqPrevCase) && curr.currentCaseId != caseId) {
-            return ActionResult(false, "Complete Case 0${targetCase.number - 1} first to unlock this dossier.")
+        if (!GameContent.isCaseUnlocked(targetCase, curr.completedCases) && curr.currentCaseId != caseId) {
+            val prev = GameContent.previousCase(targetCase)
+            return ActionResult(false, "Complete ${prev?.let { GameContent.caseLabel(it.number) } ?: "the previous case"} first to unlock this dossier.")
         }
 
         val taskIdx = curr.caseTaskIndices[caseId] ?: 0
         val progress = taskIdx.toFloat() / targetCase.tasks.size.toFloat()
 
+        val newIndices = curr.caseTaskIndices.toMutableMap()
+        newIndices[caseId] = taskIdx
         val updated = curr.copy(
             currentCaseId = caseId,
             currentTaskIndex = taskIdx,
+            caseTaskIndices = newIndices,
             caseProgress = progress.coerceIn(0.0f, 1.0f)
         )
         _state.value = updated
         saveGame(updated)
-        return ActionResult(true, "Opened Case 0${targetCase.number}: ${targetCase.title}")
+        // Clues you already hold may satisfy the first objective of the case you just opened.
+        settleTasks()
+        return ActionResult(true, "Opened ${GameContent.caseLabel(targetCase.number)}: ${targetCase.title}")
     }
 
-    private fun checkTaskCompletion(itemId: String) {
-        val curr = _state.value
-        val activeCase = GameContent.caseMap[curr.currentCaseId] ?: return
-        val currentIdx = curr.caseTaskIndices[curr.currentCaseId] ?: curr.currentTaskIndex
-        if (currentIdx !in activeCase.tasks.indices) return
+    /**
+     * Completes every objective that can be completed right now. A clue needed by the active
+     * objective is handed in from the board (or the field bag) and consumed. Solving a case
+     * moves the investigation on to the next unlocked case automatically.
+     * Returns how many objectives were completed.
+     */
+    private fun settleTasks(): Int {
+        var completed = 0
+        var guard = 0
+        while (guard++ < 60) {
+            val curr = _state.value
+            val activeCase = GameContent.caseMap[curr.currentCaseId] ?: return completed
+            val currentIdx = curr.caseTaskIndices[curr.currentCaseId] ?: curr.currentTaskIndex
+            if (currentIdx !in activeCase.tasks.indices) return completed
+            val task = activeCase.tasks[currentIdx]
 
-        val currentTask = activeCase.tasks[currentIdx]
-        if (!currentTask.requiredItems.contains(itemId)) return
-        if (curr.completedTasks.contains(currentTask.id)) return
+            val boardIdx = curr.boardItems.indexOfFirst { it.isNotEmpty() && task.requiredItems.contains(it) }
+            val invIdx = if (boardIdx == -1) {
+                curr.inventoryItems.indexOfFirst { it.isNotEmpty() && task.requiredItems.contains(it) }
+            } else -1
+            if (boardIdx == -1 && invIdx == -1) return completed
 
-        val newCompletedTasks = curr.completedTasks + currentTask.id
-        val nextIdx = currentIdx + 1
-        val newIndices = curr.caseTaskIndices.toMutableMap()
-        newIndices[curr.currentCaseId] = nextIdx
-        val newProgress = nextIdx.toFloat() / activeCase.tasks.size.toFloat()
+            val newBoard = curr.boardItems.toMutableList()
+            val newInv = curr.inventoryItems.toMutableList()
+            if (boardIdx != -1) newBoard[boardIdx] = "" else newInv[invIdx] = ""
+            val sel = _selection.value
+            if (sel != null && ((sel.first == "board" && sel.second == boardIdx && boardIdx != -1) ||
+                        (sel.first == "inventory" && sel.second == invIdx && invIdx != -1))) {
+                _selection.value = null
+            }
 
-        val isCaseComplete = nextIdx >= activeCase.tasks.size
-        val newCompletedCases = if (isCaseComplete && !curr.completedCases.contains(curr.currentCaseId)) {
-            curr.completedCases + curr.currentCaseId
-        } else {
-            curr.completedCases
-        }
+            val alreadyDone = curr.completedTasks.contains(task.id)
+            val nextIdx = currentIdx + 1
+            val isCaseComplete = nextIdx >= activeCase.tasks.size
+            val firstTimeCase = isCaseComplete && !curr.completedCases.contains(curr.currentCaseId)
 
-        val extraCoins = if (isCaseComplete) activeCase.completionCoins else 0
-        val extraGems = if (isCaseComplete) activeCase.completionGems else 0
+            val newIndices = curr.caseTaskIndices.toMutableMap()
+            newIndices[curr.currentCaseId] = nextIdx
+            val newCompletedCases = if (firstTimeCase) curr.completedCases + curr.currentCaseId else curr.completedCases
 
-        val updated = curr.copy(
-            coins = curr.coins + currentTask.coinReward + extraCoins,
-            gems = curr.gems + currentTask.gemReward + extraGems,
-            completedTasks = newCompletedTasks,
-            completedCases = newCompletedCases,
-            caseTaskIndices = newIndices,
-            currentTaskIndex = nextIdx,
-            caseProgress = newProgress.coerceIn(0.0f, 1.0f)
-        )
-        _state.value = updated
-        saveGame(updated)
+            val taskCoins = if (alreadyDone) 0 else task.coinReward
+            val taskGems = if (alreadyDone) 0 else task.gemReward
+            val extraCoins = if (firstTimeCase) activeCase.completionCoins else 0
+            val extraGems = if (firstTimeCase) activeCase.completionGems else 0
 
-        val storyText = GameContent.dialogueMap[currentTask.storyReward]
-            ?: "A crucial new piece of evidence falls into place."
+            // Move on to the next case automatically once this one is solved.
+            val nextCase = if (isCaseComplete) GameContent.nextCase(activeCase) else null
+            val nextCaseId = nextCase?.id ?: curr.currentCaseId
+            val nextCaseIdx = if (nextCase != null) (newIndices[nextCase.id] ?: 0) else nextIdx
+            if (nextCase != null) newIndices[nextCase.id] = nextCaseIdx
+            val activeAfter = nextCase ?: activeCase
 
-        _storyEvents.tryEmit(
-            StoryEvent(
-                title = currentTask.title,
-                storyText = storyText,
-                coinReward = currentTask.coinReward + extraCoins,
-                gemReward = currentTask.gemReward + extraGems,
-                isCaseComplete = isCaseComplete,
-                completedCaseTitle = activeCase.title
+            val updated = curr.copy(
+                boardItems = newBoard,
+                inventoryItems = newInv,
+                coins = curr.coins + taskCoins + extraCoins,
+                gems = curr.gems + taskGems + extraGems,
+                completedTasks = if (alreadyDone) curr.completedTasks else curr.completedTasks + task.id,
+                completedCases = newCompletedCases,
+                caseTaskIndices = newIndices,
+                currentCaseId = nextCaseId,
+                currentTaskIndex = nextCaseIdx,
+                caseProgress = (nextCaseIdx.toFloat() / activeAfter.tasks.size.toFloat()).coerceIn(0.0f, 1.0f)
             )
-        )
+            _state.value = updated
+            saveGame(updated)
+            completed++
+
+            val storyText = GameContent.dialogueMap[task.storyReward]
+                ?: "A crucial new piece of evidence falls into place."
+            _storyEvents.tryEmit(
+                StoryEvent(
+                    title = task.title,
+                    storyText = storyText,
+                    coinReward = taskCoins + extraCoins,
+                    gemReward = taskGems + extraGems,
+                    isCaseComplete = isCaseComplete,
+                    completedCaseTitle = activeCase.title
+                )
+            )
+        }
+        return completed
     }
+
+    fun isDailyRewardClaimed(): Boolean = _state.value.dailyClaimedDay == getTodayKey()
 
     fun claimDailyReward(): ActionResult {
         val curr = _state.value
@@ -531,25 +549,30 @@ class GameStateRepository(private val context: Context) {
         )
         _state.value = updated
         saveGame(updated)
+        syncEnergy()
         return ActionResult(true, "Daily gift claimed: +100 coins and +10 energy!")
     }
 
     fun purchaseEnergyPack(coinCost: Int, energyAmount: Int): ActionResult {
         val curr = _state.value
-        if (curr.coins < coinCost) {
-            return ActionResult(false, "Not enough coins for this supply pack.")
-        }
         if (curr.energy >= curr.maxEnergy) {
             return ActionResult(false, "Your energy is already full.")
         }
         val gained = energyAmount.coerceAtMost(curr.maxEnergy - curr.energy)
+        // Pay only for the energy that actually fits.
+        val cost = if (gained >= energyAmount) coinCost else
+            kotlin.math.ceil(coinCost.toDouble() * gained / energyAmount).toInt()
+        if (curr.coins < cost) {
+            return ActionResult(false, "Not enough coins for this supply pack.")
+        }
         val updated = curr.copy(
-            coins = curr.coins - coinCost,
+            coins = curr.coins - cost,
             energy = curr.energy + gained
         )
         _state.value = updated
         saveGame(updated)
-        return ActionResult(true, "Purchased $gained energy for $coinCost coins.")
+        syncEnergy()
+        return ActionResult(true, "Purchased $gained energy for $cost coins.")
     }
 
     fun claimTestAdReward(): ActionResult {
@@ -559,6 +582,7 @@ class GameStateRepository(private val context: Context) {
         )
         _state.value = updated
         saveGame(updated)
+        syncEnergy()
         return ActionResult(true, "+10 Test Energy added!")
     }
 
@@ -594,7 +618,10 @@ class GameStateRepository(private val context: Context) {
         _state.value = fresh
         saveGame(fresh)
         clearSelection()
+        syncEnergy()
     }
+
+    fun todayKey(): Int = getTodayKey()
 
     private fun getTodayKey(): Int {
         val cal = Calendar.getInstance()

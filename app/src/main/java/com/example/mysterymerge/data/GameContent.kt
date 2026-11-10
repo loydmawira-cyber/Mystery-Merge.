@@ -204,10 +204,123 @@ object GameContent {
             ),
             completionCoins = 2000,
             completionGems = 50
+        ),
+        CaseModel(
+            id = "case_06",
+            number = 6,
+            title = "The Silent Conservatory",
+            subtitle = "One broken pane, and the orchids are gone",
+            description = "Hale Manor's glass conservatory fell silent overnight. A single pane is shattered from the inside, and someone took great care to hide what they carried out.",
+            thumbResId = R.drawable.case_thumb_06,
+            locations = listOf("garden_room", "study", "locked_attic"),
+            tasks = listOf(
+                TaskItem("task_c6_bloom", "case_06", "Identify the pressed orchid bloom", listOf("pressed_bloom"), 240, 2, "scene_c6_bloom"),
+                TaskItem("task_c6_ribbon", "case_06", "Mend the ribbon from the broken pane", listOf("mended_ribbon"), 260, 2, "scene_c6_ribbon"),
+                TaskItem("task_c6_key", "case_06", "Clean the potting-shed key", listOf("cleaned_key"), 280, 3, "scene_c6_key"),
+                TaskItem("task_c6_fiber", "case_06", "Trace the fibre caught in the glass", listOf("attic_fiber"), 320, 4, "scene_c6_fiber"),
+                TaskItem("task_c6_stitch", "case_06", "Read the embroidered initials", listOf("embroidered_ribbon"), 420, 12, "scene_c6_truth")
+            ),
+            completionCoins = 1400,
+            completionGems = 30
+        ),
+        CaseModel(
+            id = "case_07",
+            number = 7,
+            title = "The Sealed Letter",
+            subtitle = "A letter nobody was ever meant to open",
+            description = "A letter sealed with the Cole crest was found in the library fireplace, half burned. Whoever wrote it wanted the truth to survive, and someone else wanted it gone.",
+            thumbResId = R.drawable.case_thumb_07,
+            locations = listOf("study", "locked_attic", "garden_room"),
+            tasks = listOf(
+                TaskItem("task_c7_note", "case_07", "Open the scorched letter", listOf("opened_note"), 260, 2, "scene_c7_note"),
+                TaskItem("task_c7_wax", "case_07", "Mend the broken wax seal", listOf("melted_seal"), 280, 2, "scene_c7_wax"),
+                TaskItem("task_c7_photo", "case_07", "Reassemble the enclosed photograph", listOf("reassembled_photo"), 300, 3, "scene_c7_photo"),
+                TaskItem("task_c7_seal", "case_07", "Complete the Cole family seal", listOf("family_seal"), 380, 5, "scene_c7_seal"),
+                TaskItem("task_c7_decode", "case_07", "Decode the final paragraph", listOf("decoded_note"), 460, 14, "scene_c7_truth")
+            ),
+            completionCoins = 1600,
+            completionGems = 32
+        ),
+        CaseModel(
+            id = "case_08",
+            number = 8,
+            title = "The Violinist's Last Note",
+            subtitle = "The music stopped mid-bar at the midnight recital",
+            description = "Celeste Hale's violin fell silent in the middle of her own recital, and she hasn't been seen since. The unfinished score may be the only thing she left behind.",
+            thumbResId = R.drawable.case_thumb_08,
+            locations = listOf("locked_attic", "study", "garden_room"),
+            tasks = listOf(
+                TaskItem("task_c8_score", "case_08", "Restore the unfinished score", listOf("restored_score"), 300, 3, "scene_c8_score"),
+                TaskItem("task_c8_dust", "case_08", "Sift the rosin dust from the case", listOf("sifted_dust"), 320, 3, "scene_c8_dust"),
+                TaskItem("task_c8_clasp", "case_08", "Restore the violin case clasp", listOf("locket_clasp"), 340, 3, "scene_c8_clasp"),
+                TaskItem("task_c8_melody", "case_08", "Play the full midnight melody", listOf("midnight_melody"), 440, 6, "scene_c8_melody"),
+                TaskItem("task_c8_photo", "case_08", "Read the recital photograph", listOf("annotated_photo"), 520, 16, "scene_c8_truth")
+            ),
+            completionCoins = 1800,
+            completionGems = 35
+        ),
+        CaseModel(
+            id = "case_09",
+            number = 9,
+            title = "The Cellar Beneath the Chapel",
+            subtitle = "A door that has not opened in sixty years",
+            description = "Behind the manor chapel's altar, a cellar door has been forced from below. Every trail you have followed so far leads down these steps.",
+            thumbResId = R.drawable.case_thumb_09,
+            locations = listOf("study", "locked_attic", "garden_room"),
+            tasks = listOf(
+                TaskItem("task_c9_key", "case_09", "Clean the cellar door key", listOf("cleaned_key"), 340, 3, "scene_c9_key"),
+                TaskItem("task_c9_print", "case_09", "Match the print on the stair", listOf("garden_impression"), 360, 3, "scene_c9_print"),
+                TaskItem("task_c9_wax", "case_09", "Mend the wax from the lock", listOf("melted_seal"), 380, 4, "scene_c9_wax"),
+                TaskItem("task_c9_engrave", "case_09", "Read the engraved crest key", listOf("engraved_key"), 480, 7, "scene_c9_engrave"),
+                TaskItem("task_c9_footprint", "case_09", "Follow the matching footprints", listOf("matching_footprint"), 560, 18, "scene_c9_truth")
+            ),
+            completionCoins = 2000,
+            completionGems = 40
+        ),
+        CaseModel(
+            id = "case_10",
+            number = 10,
+            title = "The Heir's Return",
+            subtitle = "Every thread leads back to Hale Manor",
+            description = "The last heir has come home, and the final pieces of the Hale mystery lie on your desk. Assemble the complete evidence and close the book for good.",
+            thumbResId = R.drawable.case_thumb_10,
+            locations = listOf("locked_attic", "garden_room", "study"),
+            tasks = listOf(
+                TaskItem("task_c10_seal", "case_10", "Present the complete family seal", listOf("family_seal"), 500, 8, "scene_c10_seal"),
+                TaskItem("task_c10_token", "case_10", "Present the brass garden token", listOf("garden_token"), 540, 8, "scene_c10_token"),
+                TaskItem("task_c10_fiber", "case_10", "Present the blue attic fibre", listOf("attic_fiber"), 580, 9, "scene_c10_fiber"),
+                TaskItem("task_c10_melody", "case_10", "Present the midnight melody", listOf("midnight_melody"), 620, 10, "scene_c10_melody"),
+                TaskItem("task_c10_locket", "case_10", "Present the missing locket", listOf("missing_locket"), 800, 25, "scene_c10_truth")
+            ),
+            completionCoins = 3000,
+            completionGems = 75
         )
     )
 
     val caseMap: Map<String, CaseModel> = cases.associateBy { it.id }
+
+    /** "CASE 07" style label that also works for two-digit case numbers. */
+    fun caseLabel(number: Int): String = "CASE %02d".format(number)
+
+    fun previousCase(case: CaseModel): CaseModel? = cases.getOrNull(case.number - 2)
+
+    fun nextCase(case: CaseModel): CaseModel? = cases.getOrNull(case.number)
+
+    fun isCaseUnlocked(case: CaseModel, completedCases: List<String>): Boolean {
+        val prev = previousCase(case) ?: return true
+        return completedCases.contains(prev.id)
+    }
+
+    /** Single source of truth for generator unlocks, used by both the UI and the repository. */
+    fun isGeneratorUnlocked(generatorId: String, state: GameSaveState): Boolean {
+        val activeIndex = state.caseTaskIndices[state.currentCaseId] ?: state.currentTaskIndex
+        val anyCaseSolved = state.completedCases.isNotEmpty()
+        return when (generatorId) {
+            "garden_room" -> activeIndex >= 2 || anyCaseSolved
+            "locked_attic" -> activeIndex >= 4 || anyCaseSolved
+            else -> true
+        }
+    }
 
     val dialogues = listOf(
         // Case 1
@@ -243,7 +356,42 @@ object GameContent {
         DialogueScene("scene_c5_key", "The engraved mansion key unlocks the master vault behind the grand ballroom portrait."),
         DialogueScene("scene_c5_score", "As the midnight melody echoes through the mansion, the final safe dial falls into alignment."),
         DialogueScene("scene_c5_token", "The brass token acts as the key to the inner safe deposit box."),
-        DialogueScene("scene_c5_truth", "Case Closed! The missing locket, the true deeds, and the complete family history are restored to the rightful heir.")
+        DialogueScene("scene_c5_truth", "Case Closed! The missing locket, the true deeds, and the complete family history are restored to the rightful heir."),
+
+        // Case 6
+        DialogueScene("scene_c6_bloom", "The pressed orchid is a species the conservatory has not grown in thirty years. Someone brought it in from outside."),
+        DialogueScene("scene_c6_ribbon", "The mended ribbon is knotted in a sailor's hitch. Whoever tied it spent time at sea, which narrows the suspects."),
+        DialogueScene("scene_c6_key", "The cleaned key opens the potting shed, where a muddy pair of boots sits too neatly in the corner."),
+        DialogueScene("scene_c6_fiber", "The fibre in the broken pane is blue wool, matching the attic. The thief climbed up from the house, not in from the garden."),
+        DialogueScene("scene_c6_truth", "The embroidered initials read 'M.H.'. Margaret Hale staged the break-in herself to protect the orchids' real owner."),
+
+        // Case 7
+        DialogueScene("scene_c7_note", "The scorched page opens to a single line: 'If you are reading this, I could not say it aloud.'"),
+        DialogueScene("scene_c7_wax", "The wax carries a thumbprint pressed into the crest. Whoever sealed it did so in a hurry, and left-handed."),
+        DialogueScene("scene_c7_photo", "The photograph inside shows two figures at the chapel door. One is Richard Cole. The other has been cut away."),
+        DialogueScene("scene_c7_seal", "The complete seal matches the archive ledger, and the ledger has a missing page dated the night of the letter."),
+        DialogueScene("scene_c7_truth", "The decoded paragraph names the writer: Eleanor Cole, who disappeared after learning who forged her father's will."),
+
+        // Case 8
+        DialogueScene("scene_c8_score", "The restored score ends on a rest that was never written by the composer. Someone added it to hide a message."),
+        DialogueScene("scene_c8_dust", "Rosin dust, but grey and mixed with attic grit. The violin case was opened somewhere it should never have been."),
+        DialogueScene("scene_c8_clasp", "The clasp was forced and re-bent by hand. The violin was taken out quickly, and was not meant to be seen leaving."),
+        DialogueScene("scene_c8_melody", "Played in full, the melody unlocks the music box in the green room, and inside it is a folded programme."),
+        DialogueScene("scene_c8_truth", "The recital photograph shows an empty seat in the front row. Celeste left of her own will, with help from the one person who stayed away."),
+
+        // Case 9
+        DialogueScene("scene_c9_key", "The cleaned key turns in the cellar lock with no resistance. Someone has oiled it recently."),
+        DialogueScene("scene_c9_print", "The print on the stair is fresh, and a size smaller than the groundskeeper's boots."),
+        DialogueScene("scene_c9_wax", "Mended wax from the lock matches the letter seal. Whoever sealed the letter has been down here before."),
+        DialogueScene("scene_c9_engrave", "The engraved key's crest fits a recess in the cellar wall, and a stone panel slides aside."),
+        DialogueScene("scene_c9_truth", "The footprints lead through the hidden passage to the chapel. Sixty years of secrets were being moved, one crate at a time."),
+
+        // Case 10
+        DialogueScene("scene_c10_seal", "The complete seal is pressed onto the final document, and the Hale family archive opens for the first time in a generation."),
+        DialogueScene("scene_c10_token", "The brass token fits the lock of the heir's trunk. Inside lie letters from every case you have solved."),
+        DialogueScene("scene_c10_fiber", "The blue fibre matches the heir's own coat. They were in the attic that night, but not as a thief."),
+        DialogueScene("scene_c10_melody", "The midnight melody plays one last time, and Nora realises every clue was left on purpose, in order."),
+        DialogueScene("scene_c10_truth", "The locket opens to a portrait of the heir as a child. The mystery was never a crime. It was a family finding its way home. Case Closed.")
     )
 
     val dialogueMap: Map<String, String> = dialogues.associate { it.id to it.text }
