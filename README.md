@@ -35,18 +35,24 @@ Every clue belongs to one of ten distinct evidence chains and can only merge wit
 
 ### 4. Solving Cases & Narrative Reveals
 - The manila folder banner at the top displays your current **Case** and the required evidence item.
-- Merging the requested clue automatically fulfills the objective, granting **Coins (🪙)**, **Gems (💎)**, and unlocking an authored detective story scene.
-- Completing all 5 objectives in a case solves the mystery, awards grand completion bonuses, and unlocks the next dossier in the **Cases** archive:
-  - **Case 01: The Missing Locket**
-  - **Case 02: The Clock Tower Cipher**
-  - **Case 03: The Rose Garden Mystery**
-  - **Case 04: The Alchemist's Secret**
-  - **Case 05: The Midnight Masquerade**
+- Making the requested clue (or already holding it on the board or in the Field Bag) hands it in automatically. The clue is **used up**, and you earn **Coins (🪙)**, **Gems (💎)** and an authored detective story scene.
+- Completing all 5 objectives solves the case, awards a completion bonus, and **opens the next case automatically**.
+- There are **10 cases**:
+  1. **The Missing Locket**
+  2. **The Clock Tower Cipher**
+  3. **The Rose Garden Mystery**
+  4. **The Alchemist's Secret**
+  5. **The Midnight Masquerade**
+  6. **The Silent Conservatory**
+  7. **The Sealed Letter**
+  8. **The Violinist's Last Note**
+  9. **The Cellar Beneath the Chapel**
+  10. **The Heir's Return**
 
 ### 5. Energy & Economy
 - **Regeneration**: Energy restores automatically at **1 point every 2 minutes (120 seconds)** up to 100 max, both in-game and while offline.
-- **Daily Detective Gift**: Claim free daily supplies (+100 Coins, +10 Energy) every 24 hours.
-- **Detective Shop**: Purchase instant +10, +25, +50, or +75 Energy packs using earned coins.
+- **Daily Detective Gift**: Claim free supplies (+100 Coins, +10 Energy) once per calendar day from the Shop.
+- **Detective Shop**: Purchase instant +10, +25, +50, or +75 Energy packs using earned coins. If your energy is nearly full you only pay for the energy that fits.
 
 ## Android Build & CI/CD
 
