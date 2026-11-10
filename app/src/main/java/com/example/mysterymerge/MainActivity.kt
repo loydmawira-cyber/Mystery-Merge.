@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mysterymerge.data.GameContent
 import com.example.mysterymerge.data.GameStateRepository
 import com.example.mysterymerge.data.StoryEvent
 import com.example.mysterymerge.model.Screen
@@ -19,7 +20,6 @@ import com.example.mysterymerge.ui.components.StoryRevealDialog
 import com.example.mysterymerge.ui.screens.*
 import com.example.mysterymerge.ui.theme.MysteryMergeTheme
 import com.example.mysterymerge.ui.theme.MysteryNavy
-import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
 
@@ -45,14 +45,16 @@ fun MysteryMergeApp(repository: GameStateRepository) {
     val secondsUntilEnergy by repository.secondsUntilNextEnergy.collectAsStateWithLifecycle()
 
     var currentScreen by remember { mutableStateOf(Screen.BOARD) }
-    var currentStoryEvent by remember { mutableStateOf<StoryEvent?>(null) }
+    // Queue so that several objectives solved in one move are shown one after another.
+    val storyQueue = remember { mutableStateListOf<StoryEvent>() }
+    val currentStoryEvent = storyQueue.firstOrNull()
     var feedbackMessage by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Listen to story reveal events
     LaunchedEffect(Unit) {
-        repository.storyEvents.collectLatest { event ->
-            currentStoryEvent = event
+        repository.storyEvents.collect { event ->
+            storyQueue.add(event)
         }
     }
 
@@ -61,7 +63,7 @@ fun MysteryMergeApp(repository: GameStateRepository) {
         currentScreen = Screen.BOARD
     }
 
-    val selection = repository.getSelection()
+    val selection by repository.selection.collectAsStateWithLifecycle()
     val selectedZone = selection?.first
     val selectedIndex = selection?.second ?: -1
 
@@ -72,7 +74,7 @@ fun MysteryMergeApp(repository: GameStateRepository) {
             BottomNavBar(
                 currentScreen = currentScreen,
                 onNavigate = { currentScreen = it },
-                hasCaseNotifications = state.completedCases.size < 5
+                hasCaseNotifications = state.completedCases.size < GameContent.cases.size
             )
         },
         containerColor = MysteryNavy
@@ -123,6 +125,11 @@ fun MysteryMergeApp(repository: GameStateRepository) {
                 Screen.SHOP -> ShopScreen(
                     state = state,
                     feedbackText = feedbackMessage,
+                    dailyClaimed = state.dailyClaimedDay == repository.todayKey(),
+                    onClaimDaily = {
+                        val result = repository.claimDailyReward()
+                        feedbackMessage = result.message
+                    },
                     onPurchaseEnergyPack = { cost, amount ->
                         val result = repository.purchaseEnergyPack(cost, amount)
                         feedbackMessage = result.message
@@ -150,7 +157,7 @@ fun MysteryMergeApp(repository: GameStateRepository) {
             currentStoryEvent?.let { story ->
                 StoryRevealDialog(
                     event = story,
-                    onDismiss = { currentStoryEvent = null }
+                    onDismiss = { if (storyQueue.isNotEmpty()) storyQueue.removeAt(0) }
                 )
             }
         }
