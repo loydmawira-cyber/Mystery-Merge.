@@ -90,6 +90,18 @@ func _build() -> void:
 	var progress := _label(GameState.get_task_progress_text(), 13, Color("765326"))
 	progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	case_content.add_child(progress)
+	var progress_bar := ProgressBar.new()
+	progress_bar.max_value = 1.0
+	progress_bar.value = GameState.case_progress
+	progress_bar.show_percentage = false
+	progress_bar.custom_minimum_size.y = 9
+	progress_bar.add_theme_stylebox_override("background", UI.button_style(Color("c6b184"), Color("b28a4d")))
+	progress_bar.add_theme_stylebox_override("fill", UI.button_style(Color("17616a"), Color("17616a")))
+	case_content.add_child(progress_bar)
+	var task_detail := _label(GameState.get_current_task_detail(), 11, Color("5e4930"))
+	task_detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	task_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	case_content.add_child(task_detail)
 	var play := _button("CONTINUE INVESTIGATION     ›", Color("07515a"), UI.CREAM)
 	play.custom_minimum_size.y = 58
 	play.pressed.connect(func(): NavigationManager.show_screen("board"))
@@ -100,6 +112,16 @@ func _build() -> void:
 	daily.add_theme_font_size_override("font_size", 11)
 	daily.pressed.connect(_daily_reward)
 	root.add_child(daily)
+	GameState.economy_changed.connect(func():
+		wallet_row.get_child(0).text = "⚡  %d/%d" % [GameState.energy, GameState.max_energy]
+		wallet_row.get_child(1).text = "◉  " + _commas(GameState.coins)
+		wallet_row.get_child(2).text = "◆  " + str(GameState.gems)
+	)
+	GameState.progress_changed.connect(func():
+		progress.text = GameState.get_task_progress_text()
+		progress_bar.value = GameState.case_progress
+		task_detail.text = GameState.get_current_task_detail()
+	)
 
 	var nav := HBoxContainer.new()
 	nav.add_theme_constant_override("separation", 7)

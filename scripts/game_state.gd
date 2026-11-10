@@ -236,6 +236,24 @@ func get_task_progress_text() -> String:
 	var task: Dictionary = get_current_task()
 	return "TASK %d/%d · %s" % [current_task_index + 1, task_catalog.size(), str(task.get("title", "Investigate"))]
 
+func get_current_task_detail() -> String:
+	if current_task_index >= task_catalog.size():
+		return "Every clue has been restored. The missing locket case is solved."
+	var task: Dictionary = get_current_task()
+	var required: Array = task.get("required_items", [])
+	var names: Array[String] = []
+	for item_id in required:
+		var item: Dictionary = get_item(str(item_id))
+		names.append(str(item.get("display_name", item_id)))
+	return "Restore %s to reveal the next detail." % ", ".join(names)
+
+func is_generator_unlocked(generator_id: String) -> bool:
+	if generator_id == "garden_room":
+		return current_task_index >= 2
+	if generator_id == "locked_attic":
+		return current_task_index >= 4
+	return generator_catalog.has(generator_id)
+
 func _register_task_result(item_id: String) -> void:
 	if current_task_index >= task_catalog.size():
 		return

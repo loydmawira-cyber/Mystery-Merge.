@@ -12,6 +12,8 @@ var item_count_label: Label
 var inventory_count_label: Label
 var feedback_label: Label
 var task_label: Label
+var task_detail_label: Label
+var progress_bar: ProgressBar
 var board_grid: GridContainer
 var inventory_grid: GridContainer
 var selected_source: Dictionary = {}
@@ -87,8 +89,11 @@ func _build_ui() -> void:
 	var objective := PanelContainer.new()
 	objective.add_theme_stylebox_override("panel", UI.panel(Color("e4d0aa"), Color("9c7440"), 10))
 	root.add_child(objective)
+	var objective_col := VBoxContainer.new()
+	objective_col.add_theme_constant_override("separation", 4)
+	objective.add_child(objective_col)
 	var obj_row := HBoxContainer.new()
-	objective.add_child(obj_row)
+	objective_col.add_child(obj_row)
 	var obj_icon := _label("▤", 20, UI.INK)
 	obj_row.add_child(obj_icon)
 	task_label = _label(GameState.get_task_progress_text(), 12, UI.INK)
@@ -97,6 +102,17 @@ func _build_ui() -> void:
 	obj_row.add_child(task_label)
 	item_count_label = _label("0/63", 10, UI.INK)
 	obj_row.add_child(item_count_label)
+	task_detail_label = _label(GameState.get_current_task_detail(), 10, Color("5e4930"))
+	task_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	objective_col.add_child(task_detail_label)
+	progress_bar = ProgressBar.new()
+	progress_bar.max_value = 1.0
+	progress_bar.value = GameState.case_progress
+	progress_bar.show_percentage = false
+	progress_bar.custom_minimum_size.y = 7
+	progress_bar.add_theme_stylebox_override("background", UI.button_style(Color("c6b184"), Color("9c7440")))
+	progress_bar.add_theme_stylebox_override("fill", UI.button_style(Color("17616a"), Color("17616a")))
+	objective_col.add_child(progress_bar)
 
 	var gen_head := HBoxContainer.new()
 	root.add_child(gen_head)
@@ -179,10 +195,13 @@ func _resource_chip(parent: HBoxContainer, symbol: String, value: String, color:
 	return chip
 
 func _add_generator_button(parent: HBoxContainer, id: String, title: String, detail: String) -> void:
-	var b := _small_button(title + "\n" + detail, Color("1c4b55"), UI.CREAM)
+	var unlocked := GameState.is_generator_unlocked(id)
+	var caption := (title if unlocked else "LOCKED") + "\n" + detail
+	var b := _small_button(caption, Color("1c4b55") if unlocked else Color("172b33"), UI.CREAM if unlocked else UI.MUTED)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.custom_minimum_size.y = 43
 	b.add_theme_font_size_override("font_size", 10)
+	b.disabled = not unlocked
 	b.pressed.connect(_on_generator_pressed.bind(id))
 	parent.add_child(b)
 
@@ -268,7 +287,7 @@ func _refresh_board() -> void:
 
 func _refresh_economy() -> void:
 	if is_instance_valid(energy_label):
-		energy_label.text = "⚡ %d" % GameState.energy
+		energy_label.text = "⚡ %d/%d" % [GameState.energy, GameState.max_energy]
 	if is_instance_valid(coin_label):
 		coin_label.text = "◉ %s" % _commas(GameState.coins)
 	if is_instance_valid(gem_label):
@@ -303,6 +322,10 @@ func _show_feedback(message: String, success: bool) -> void:
 func _refresh_task() -> void:
 	if is_instance_valid(task_label):
 		task_label.text = GameState.get_task_progress_text()
+	if is_instance_valid(task_detail_label):
+		task_detail_label.text = GameState.get_current_task_detail()
+	if is_instance_valid(progress_bar):
+		progress_bar.value = GameState.case_progress
 
 func _on_task_completed(task_id: String, story_text: String) -> void:
 	_refresh_task()
