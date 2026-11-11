@@ -44,7 +44,7 @@ fun MysteryMergeApp(repository: GameStateRepository) {
     val state by repository.state.collectAsStateWithLifecycle()
     val secondsUntilEnergy by repository.secondsUntilNextEnergy.collectAsStateWithLifecycle()
 
-    var currentScreen by remember { mutableStateOf(Screen.BOARD) }
+    var currentScreen by remember { mutableStateOf(Screen.SCENE) }
     // Queue so that several objectives solved in one move are shown one after another.
     val storyQueue = remember { mutableStateListOf<StoryEvent>() }
     val currentStoryEvent = storyQueue.firstOrNull()
@@ -59,8 +59,8 @@ fun MysteryMergeApp(repository: GameStateRepository) {
     }
 
     // Handle Android system back press
-    BackHandler(enabled = currentScreen != Screen.BOARD) {
-        currentScreen = Screen.BOARD
+    BackHandler(enabled = currentScreen != Screen.SCENE) {
+        currentScreen = Screen.SCENE
     }
 
     val selection by repository.selection.collectAsStateWithLifecycle()
@@ -86,6 +86,11 @@ fun MysteryMergeApp(repository: GameStateRepository) {
                 .background(MysteryNavy)
         ) {
             when (currentScreen) {
+                Screen.SCENE -> SceneScreen(
+                    state = state,
+                    onSearch = { hotspotId -> repository.searchHotspot(hotspotId) },
+                    onNavigate = { currentScreen = it }
+                )
                 Screen.BOARD -> MergeBoardScreen(
                     state = state,
                     selectedZone = selectedZone,
