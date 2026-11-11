@@ -308,6 +308,14 @@ fun BottomNavBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             NavButton(
+                icon = "🔍",
+                label = "Scene",
+                isSelected = currentScreen == Screen.SCENE,
+                onClick = { onNavigate(Screen.SCENE) },
+                testTag = "nav_scene_button",
+                modifier = Modifier.weight(1f)
+            )
+            NavButton(
                 icon = "▦",
                 label = "Board",
                 isSelected = currentScreen == Screen.BOARD,
