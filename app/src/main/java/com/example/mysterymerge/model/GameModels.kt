@@ -75,6 +75,33 @@ data class EnergyPack(
     val coinCost: Int
 )
 
+/** Damaged clue pieces hidden in a spot, enough to build what one objective needs. */
+data class ClueReward(
+    val itemId: String,
+    val count: Int,
+    val taskId: String
+)
+
+data class SceneHotspot(
+    val id: String,
+    val label: String,
+    val x: Float,
+    val y: Float,
+    val searchText: String,
+    val clue: ClueReward? = null,
+    val coinReward: Int = 0,
+    val requiresId: String? = null,
+    val lockedHint: String = ""
+)
+
+data class CaseScene(
+    val caseId: String,
+    val title: String,
+    val intro: String,
+    val imageResId: Int,
+    val hotspots: List<SceneHotspot>
+)
+
 @Serializable
 data class GameSaveState(
     val version: Int = 2,
@@ -96,10 +123,12 @@ data class GameSaveState(
     val caseTaskIndices: Map<String, Int> = emptyMap(),
     val currentTaskIndex: Int = 0,
     val dailyClaimedDay: Int = -1,
-    val lastEnergyTimestamp: Long = 0L
+    val lastEnergyTimestamp: Long = 0L,
+    val foundHotspots: List<String> = emptyList()
 )
 
 enum class Screen {
+    SCENE,
     BOARD,
     CASES,
     SHOP,
