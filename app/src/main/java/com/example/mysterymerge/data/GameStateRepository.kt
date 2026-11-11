@@ -71,30 +71,15 @@ class GameStateRepository(private val context: Context) {
 
     init {
         loadGame()
+        keepOnUnsolvedCase()
         syncEnergy()
         startLiveEnergyTicker()
     }
 
     private fun createInitialState(): GameSaveState {
+        // Empty board: the first clues come from searching the scene.
         val board = MutableList(GameContent.BOARD_SIZE) { "" }
-        // Level-1 clues only: pairs and quads that teach merging without skipping the cases.
-        val starterItems = listOf(
-            "torn_photo", "torn_photo", "torn_photo",
-            "old_key", "old_key", "old_key",
-            "folded_note", "folded_note", "folded_note", "folded_note",
-            "dust_sample", "dust_sample",
-            "footprint_trace", "footprint_trace",
-            "empty_chain", "empty_chain",
-            "blue_ribbon", "blue_ribbon"
-        )
-        // Spread them over the top rows, leaving gaps so the board feels like a workspace.
-        val starterSlots = listOf(0, 1, 2, 4, 5, 7, 8, 9, 10, 14, 15, 17, 21, 22, 24, 28, 29, 31)
-        for ((k, id) in starterItems.withIndex()) {
-            board[starterSlots[k]] = id
-        }
         val inventory = MutableList(GameContent.INVENTORY_SIZE) { "" }
-        inventory[0] = "empty_chain"
-        inventory[1] = "footprint_trace"
 
         return GameSaveState(
             version = 2,
@@ -171,6 +156,32 @@ class GameStateRepository(private val context: Context) {
             val content = json.encodeToString(currState)
             saveFile.writeText(content)
         } catch (_: Exception) {}
+    }
+
+    /** First case, in order, that is unlocked and not yet solved (null when everything is solved). */
+    private fun firstUnsolvedCase(completed: List<String>): CaseModel? =
+        GameContent.cases.firstOrNull { !completed.contains(it.id) && GameContent.isCaseUnlocked(it, completed) }
+
+    /**
+     * Never leave the investigation parked on a solved case, where no merge could ever count.
+     * Moves to the first unsolved unlocked case instead. Returns true if it moved.
+     */
+    private fun keepOnUnsolvedCase(): Boolean {
+        val curr = _state.value
+        if (!curr.completedCases.contains(curr.currentCaseId)) return false
+        val target = firstUnsolvedCase(curr.completedCases) ?: return false
+        val idx = curr.caseTaskIndices[target.id] ?: 0
+        val newIndices = curr.caseTaskIndices.toMutableMap()
+        newIndices[target.id] = idx
+        val updated = curr.copy(
+            currentCaseId = target.id,
+            currentTaskIndex = idx,
+            caseTaskIndices = newIndices,
+            caseProgress = (idx.toFloat() / target.tasks.size.toFloat()).coerceIn(0f, 1f)
+        )
+        _state.value = updated
+        saveGame(updated)
+        return true
     }
 
     private fun syncEnergy() {
@@ -424,12 +435,75 @@ class GameStateRepository(private val context: Context) {
         return ActionResult(true, "Found: $name!", "generate", selectedItem, dest)
     }
 
+    /**
+     * Searches one spot in the case scene. Clue pieces go to the evidence board (or the field bag),
+     * coins are paid for red herrings, and the spot is remembered.
+     */
+    fun searchHotspot(hotspotId: String): ActionResult {
+        val hotspot = SceneContent.hotspotMap[hotspotId] ?: return ActionResult(false, "There is nothing to examine here.")
+        val curr = _state.value
+        if (curr.foundHotspots.contains(hotspotId)) {
+            return ActionResult(false, "You have already searched the ${hotspot.label}.")
+        }
+        val req = hotspot.requiresId
+        if (req != null && !curr.foundHotspots.contains(req)) {
+            return ActionResult(false, hotspot.lockedHint.ifEmpty { "You need another lead first." })
+        }
+
+        val reward = hotspot.clue
+        // Always hand over the full set: pieces can be spent on a different objective than the one
+        // they were hidden for, so the supply must always cover every objective's cost.
+        val grant = reward?.count ?: 0
+        val newBoard = curr.boardItems.toMutableList()
+        val newInv = curr.inventoryItems.toMutableList()
+        val free = newBoard.count { it.isEmpty() } + newInv.count { it.isEmpty() }
+        if (free < grant) {
+            return ActionResult(false, "Not enough room for the evidence. Merge, sell or stash some clues first.")
+        }
+        if (reward != null && grant > 0) {
+            repeat(grant) {
+                val b = newBoard.indexOfFirst { it.isEmpty() }
+                if (b != -1) {
+                    newBoard[b] = reward.itemId
+                } else {
+                    newInv[newInv.indexOfFirst { it.isEmpty() }] = reward.itemId
+                }
+            }
+        }
+
+        val updated = curr.copy(
+            boardItems = newBoard,
+            inventoryItems = newInv,
+            coins = curr.coins + hotspot.coinReward,
+            foundHotspots = curr.foundHotspots + hotspotId
+        )
+        _state.value = updated
+        saveGame(updated)
+        settleTasks()
+        return ActionResult(true, hotspot.searchText, "scene", reward?.itemId.orEmpty(), grant)
+    }
+
     fun switchCase(caseId: String): ActionResult {
         val targetCase = GameContent.caseMap[caseId] ?: return ActionResult(false, "Case not found")
         val curr = _state.value
         if (!GameContent.isCaseUnlocked(targetCase, curr.completedCases) && curr.currentCaseId != caseId) {
             val prev = GameContent.previousCase(targetCase)
             return ActionResult(false, "Complete ${prev?.let { GameContent.caseLabel(it.number) } ?: "the previous case"} first to unlock this dossier.")
+        }
+
+        if (curr.completedCases.contains(caseId)) {
+            val next = firstUnsolvedCase(curr.completedCases)
+            if (next != null) {
+                if (curr.currentCaseId != next.id) {
+                    keepOnUnsolvedCase()
+                    settleTasks()
+                }
+                return ActionResult(
+                    true,
+                    "${GameContent.caseLabel(targetCase.number)} is already solved. Continuing with ${GameContent.caseLabel(next.number)}: ${next.title}"
+                )
+            }
+            return ActionResult(true, "${GameContent.caseLabel(targetCase.number)} is already solved.")
         }
 
         val taskIdx = curr.caseTaskIndices[caseId] ?: 0
