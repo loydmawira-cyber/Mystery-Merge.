@@ -175,6 +175,12 @@ fun HowToPlayDialog(
 private fun BasicsTab() {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         InstructionCard(
+            stepNumber = "🔍",
+            title = "Investigate the Scene",
+            body = "Open the Scene tab and tap the glowing spots in the room to search them. Some are locked until you follow an earlier lead. You'll find damaged clue pieces: take them to the Board and merge matching pieces to restore the evidence your objective needs."
+        )
+
+        InstructionCard(
             stepNumber = "1",
             title = "Tap to Select & Move",
             body = "Tap any clue on the 7×9 board to select it (a glowing golden ring appears). Then tap any empty slot to move and organize clues across your board."

@@ -3,6 +3,7 @@ package com.example.mysterymerge.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -99,7 +100,9 @@ fun CaseFilesScreen(
 
             // Case Selector Carousel / Tabs
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 for (c in GameContent.cases) {
@@ -117,7 +120,7 @@ fun CaseFilesScreen(
                             if (isSelected) MysteryGold else if (isActive) MysteryTealBright else Color.DarkGray
                         ),
                         modifier = Modifier
-                            .weight(1f)
+                            .width(76.dp)
                             .height(58.dp)
                             .testTag("case_tab_${c.number}")
                     ) {
