@@ -4,6 +4,13 @@ Portrait-first native Android mystery merge game built with Kotlin and Jetpack C
 
 ## How to Play
 
+### 0. Investigate the Scene
+- Each case opens in a room you can **search**. Open the **Scene** tab, read the *Current Lead*, then tap the glowing 🔍 spots (a desk, a trunk, a fireplace) to examine them.
+- Some spots are **locked** (🔒) until you follow an earlier lead, so the order you investigate in matters.
+- Searching a spot hides **damaged clue pieces** that land on your evidence board. Not every spot is useful: each room has a red herring.
+- Take the pieces to the **Board** (the evidence lab) and merge matching ones to restore the evidence an objective needs.
+- Every objective's pieces are hidden in the scene, so a case can be solved without spending any energy. The Evidence Chest and its random searches remain as a backup for extra pieces.
+
 ### 1. The Core Merge Loop
 - **Select**: Tap any evidence clue on the 7×9 board to select it (highlighted with a glowing golden ring).
 - **Move**: Tap any empty board slot to move the selected clue and organize your workspace.
